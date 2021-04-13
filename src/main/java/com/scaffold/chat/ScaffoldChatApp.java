@@ -9,5 +9,4 @@ public class ScaffoldChatApp {
 	public static void main(String[] args) {
 		SpringApplication.run(ScaffoldChatApp.class, args);
 	}
-
 }

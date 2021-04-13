@@ -1,4 +1,4 @@
-package com.scaffold.chat.repo;
+package com.scaffold.chat.repository;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
