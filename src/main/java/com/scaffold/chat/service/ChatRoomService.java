@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 public interface ChatRoomService {
 	
 	public String createChatRoom(String chatRoomName, long chatRoomCreatorId, List<Long> chatRoomMembersId);
-	public List<Long> addMembersInChatRoom(String chatRoomId, List<Long> membersId);
+	public List<Long> addMembers(String chatRoomId, List<Long> chatRoomMemebersId);
+	public List<Long> removeMembers(String chatRoomId, List<Long> chatRoomMemebersId);
 	
 }

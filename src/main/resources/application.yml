@@ -2,13 +2,13 @@
 cloud:
  aws:
    credentials:
-     access-key: ""
-     secret-key: ""
+     access-key: "AKIA2WBRMZFKJJZ4LRIU"
+     secret-key: 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
      
    region:
      static: ap-south-1
           
    bucket:
-    name: ""
+    name: communication-scaffold/scaffold-chat-data
    
    

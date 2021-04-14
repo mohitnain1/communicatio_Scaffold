@@ -9,6 +9,8 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import com.scaffold.chat.model.ChatRoom;
@@ -71,8 +73,24 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		return chatRoomRepository.findByChatRoomId(chatRoomId).getMessageStore().getMessageDetails();
 	}
 
-	public List<Long> addMembersInChatRoom(String chatRoomId, List<Long> membersId) {
-		chatRoomRepository.addUsersByChatRoomId(chatRoomId, membersId);
-		return null;
+
+	@Override
+	public List<Long> addMembers(String chatRoomId, List<Long> chatRoomMemebersId) {
+		ChatRoom chatRoom = chatRoomRepository.findByChatRoomId(chatRoomId);
+		List<Long> chatRoomMemebers = chatRoom.getChatRoomMemebersId();
+		chatRoomMemebers.addAll(chatRoomMemebersId);
+		chatRoom.setChatRoomMemebersId(chatRoomMemebers);
+		ChatRoom saveMembers = chatRoomRepository.save(chatRoom);
+		return saveMembers.getChatRoomMemebersId();
+	}
+
+	@Override
+	public List<Long> removeMembers(String chatRoomId, List<Long> chatRoomMemebersId) {
+		ChatRoom chatRoom = chatRoomRepository.findByChatRoomId(chatRoomId);
+		List<Long> chatRoomMemebers = chatRoom.getChatRoomMemebersId();
+		chatRoomMemebers.removeAll(chatRoomMemebersId);
+		chatRoom.setChatRoomMemebersId(chatRoomMemebers);
+		ChatRoom saveMembers = chatRoomRepository.save(chatRoom);
+		return saveMembers.getChatRoomMemebersId();
 	}
 }

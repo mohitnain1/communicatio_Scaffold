@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -31,5 +32,22 @@ public class ChatController {
 			@RequestParam long chatRoomCreatorId, @RequestParam List<Long> chatRoomMemebersId ) {
 		return new ResponseEntity<>(chatRoomServices.createChatRoom(chatRoomName, chatRoomCreatorId, chatRoomMemebersId), HttpStatus.OK);
 	}
+	
+	//Add members in chatRoom....
+	@PutMapping(value = "/addUsers")
+	@ResponseStatus(HttpStatus.OK)
+	public ResponseEntity<Object> addMembersInChatRoom(@RequestParam String chatRoomId, 
+			@RequestParam List<Long> chatRoomMemebersId ) {
+		return new ResponseEntity<>(chatRoomServices.addMembers(chatRoomId, chatRoomMemebersId), HttpStatus.OK);
+	}
+	
+	//Remove members with chatRoom....
+		@PutMapping(value = "/removeUsers")
+		@ResponseStatus(HttpStatus.OK)
+		public ResponseEntity<Object> removeMembersWithChatRoom(@RequestParam String chatRoomId, 
+				@RequestParam List<Long> chatRoomMemebersId ) {
+			return new ResponseEntity<>(chatRoomServices.removeMembers(chatRoomId, chatRoomMemebersId), HttpStatus.OK);
+		}
+	
 	
 }
