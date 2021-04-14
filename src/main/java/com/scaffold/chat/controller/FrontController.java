@@ -13,13 +13,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.scaffold.chat.service.ChatRoomService;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+
 @RestController
-@RequestMapping("/chat")
+@RequestMapping("/api/v1/chat")
+@Api(value = "Front Controller")
 public class FrontController {
 	
 	@Autowired public ChatRoomService chatRoomServices;
 	
-	@PostMapping(value = "/create-chatRoom")
+	@ApiOperation(value = "Create chatroom", notes = "This api is used to create chatroom.")
+	@PostMapping("/create-chatRoom")
 	@ResponseStatus(HttpStatus.CREATED)
 	public ResponseEntity<Object> createChatroom(@RequestParam String chatRoomName, 
 			@RequestParam String chatRoomCreatorId, @RequestParam List<String> chatRoomMemebersId ) {
