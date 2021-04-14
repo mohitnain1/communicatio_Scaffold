@@ -17,13 +17,18 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.scaffold.chat.service.AWSS3Service;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+
 @RestController
 @RequestMapping("/chat")
+@Api(value = "AWS File Controller")
 public class AWSFileController {
 	
 	@Autowired private AWSS3Service awsService;
-	
+
 	// fileUpload on S3 bucket........
+	@ApiOperation(value = "Upload File on S3 Bucket", notes = "This api is used to upload the file on S# Bucket.")
 	@PostMapping(value = "/uploadFile")
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<Object> uploadFile(@RequestPart(value = "file") final MultipartFile multipartFile,
@@ -33,6 +38,7 @@ public class AWSFileController {
 	}
 
 	// download file from s3 bucket.....
+	@ApiOperation(value = "Download File from S3 Bucket", notes = "This api is used to download the file from S3 Bucket.")
 	@GetMapping(value = "/downloadFile/{fileName}")
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<Object> downloadFile(@PathVariable String fileName) {
@@ -44,6 +50,7 @@ public class AWSFileController {
 
 	// delete file from S3 bucket....
 	// @DeleteMapping(value= "/deleteFile/{fileName}")
+	@ApiOperation(value = "Delete File from S3 Bucket", notes = "This api is used to delete the file from S3 Bucket.")
 	@GetMapping(value = "/deleteFile/{fileName}")
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<Object> deleteFile(@PathVariable String fileName) {
