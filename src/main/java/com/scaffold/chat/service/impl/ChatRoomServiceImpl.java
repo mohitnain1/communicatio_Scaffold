@@ -6,30 +6,41 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.scaffold.chat.model.ChatRoom;
 import com.scaffold.chat.model.Message;
 import com.scaffold.chat.model.MessageStore;
-import com.scaffold.chat.repo.ChatRoomRepository;
-import com.scaffold.chat.repo.MessageStoreRepository;
+import com.scaffold.chat.repository.ChatRoomRepository;
+import com.scaffold.chat.repository.MessageStoreRepository;
 import com.scaffold.chat.service.ChatRoomService;
 
 @Service
 public class ChatRoomServiceImpl implements ChatRoomService {
+	private static final Logger LOGGER = LoggerFactory.getLogger(ChatRoomServiceImpl.class);
+	
 	@Autowired public ChatRoomRepository chatRoomRepository;
 	@Autowired public MessageStoreRepository messageStoreRepository;
 
 	@Override
 	public String createChatRoom(String chatRoomName, String chatRoomCreatorId, List<String> chatRoomMembersId) {
-		ChatRoom chatRoom = new ChatRoom(chatRoomName, chatRoomCreatorId, chatRoomMembersId);
-		chatRoom.setChatRoomType("Developer-Testing");
-		chatRoom.setChatRoomCreationDate(LocalDateTime.now());
-		chatRoom.setChatRoomLastConversationDate(LocalDateTime.now());
-		chatRoom.setChatRoomId(createChatRoomId(chatRoomName));
-		chatRoom.setMessageStore(generateMessageStore(chatRoom.getChatRoomId()));
-		ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
+			ChatRoom savedChatRoom=null;
+		try {
+			ChatRoom chatRoom = new ChatRoom(chatRoomName, chatRoomCreatorId, chatRoomMembersId);
+			chatRoom.setChatRoomType("Developer-Testing");
+			chatRoom.setChatRoomCreationDate(LocalDateTime.now());
+			chatRoom.setChatRoomLastConversationDate(LocalDateTime.now());
+			chatRoom.setChatRoomId(createChatRoomId(chatRoomName));
+			chatRoom.setMessageStore(generateMessageStore(chatRoom.getChatRoomId()));
+			savedChatRoom = chatRoomRepository.save(chatRoom);
+			LOGGER.info("ChatRoom created successfully....");
+			
+		} catch (Exception e) {
+			LOGGER.info("ChatRoom creation failed....");
+		}
 		return savedChatRoom.getChatRoomId();
 	}
 	
