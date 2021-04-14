@@ -4,15 +4,27 @@ import java.time.LocalDateTime;
 
 public class Message {
 	
-	private String messageSenderId;
+	private long messageSenderId;
 	private String messsageContent;
 	private LocalDateTime messageSendingTime;
 	private String messageDestination;
 	
-	public String getMessageSenderId() {
+	
+	
+	public Message(long messageSenderId, String messsageContent) {
+		this.messageSenderId = messageSenderId;
+		this.messsageContent = messsageContent;
+	}
+	
+	
+	public Message() {
+	}
+
+
+	public long getMessageSenderId() {
 		return messageSenderId;
 	}
-	public void setMessageSenderId(String messageSenderId) {
+	public void setMessageSenderId(long messageSenderId) {
 		this.messageSenderId = messageSenderId;
 	}
 	public String getMesssageContent() {

@@ -10,6 +10,19 @@ public class MessageStore {
 	private String chatRoomId;
 	private List<Message> messageDetails;
 	
+	
+	
+	public MessageStore(String chatRoomId, List<Message> messageDetails) {
+		super();
+		this.chatRoomId = chatRoomId;
+		this.messageDetails = messageDetails;
+	}
+	
+	
+	public MessageStore() {
+	}
+
+
 	public String getId() {
 		return id;
 	}

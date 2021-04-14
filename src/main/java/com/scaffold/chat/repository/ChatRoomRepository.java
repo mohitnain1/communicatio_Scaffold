@@ -1,16 +1,13 @@
 package com.scaffold.chat.repository;
 
-import java.util.List;
-
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.data.mongodb.repository.Query;
+import org.springframework.stereotype.Repository;
 
 import com.scaffold.chat.model.ChatRoom;
-
+import com.scaffold.chat.model.MessageStore;
+@Repository
 public interface ChatRoomRepository extends MongoRepository<ChatRoom, String> {
 	
 	public ChatRoom findByChatRoomId(String chatRoomId);
-	
-	//@Query("db.chatRoom.update({'chatRoomId' : ?0 }, { $addToSet : { 'chatRoomMemebersId' : ?1} }) ")
-	//public ChatRoom findByChatRoom(String chatRoomId, List<Long> chatRoomMemebersId);
+	public MessageStore findByMessageStoreId(String chatRoomId);
 }
