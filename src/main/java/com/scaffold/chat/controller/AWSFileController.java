@@ -23,7 +23,7 @@ public class AWSFileController {
 	
 	@Autowired private AWSS3Service awsService;
 	
-	// fileUpload on S3 bucket......
+	// fileUpload on S3 bucket........
 	@PostMapping(value = "/uploadFile")
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<Object> uploadFile(@RequestPart(value = "file") final MultipartFile multipartFile,
