@@ -21,13 +21,13 @@ import com.scaffold.chat.service.ChatRoomService;
 @Service
 public class ChatRoomServiceImpl implements ChatRoomService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChatRoomServiceImpl.class);
-	
+
 	@Autowired public ChatRoomRepository chatRoomRepository;
 	@Autowired public MessageStoreRepository messageStoreRepository;
 
 	@Override
-	public String createChatRoom(String chatRoomName, String chatRoomCreatorId, List<String> chatRoomMembersId) {
-			ChatRoom savedChatRoom=null;
+	public String createChatRoom(String chatRoomName, long chatRoomCreatorId, List<Long> chatRoomMembersId) {
+		ChatRoom savedChatRoom = null;
 		try {
 			ChatRoom chatRoom = new ChatRoom(chatRoomName, chatRoomCreatorId, chatRoomMembersId);
 			chatRoom.setChatRoomType("Developer-Testing");
@@ -37,13 +37,19 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 			chatRoom.setMessageStore(generateMessageStore(chatRoom.getChatRoomId()));
 			savedChatRoom = chatRoomRepository.save(chatRoom);
 			LOGGER.info("ChatRoom created successfully....");
-			
+
 		} catch (Exception e) {
 			LOGGER.info("ChatRoom creation failed....");
 		}
 		return savedChatRoom.getChatRoomId();
 	}
-	
+
+	private String createChatRoomId(String chatRoomName) {
+		LocalDate date = LocalDate.now();
+		String roomName = chatRoomName.replaceAll("\\s", "");
+		return date + "-" + roomName.toLowerCase() + "-" + UUID.randomUUID().toString().substring(0, 8);
+	}
+
 	private MessageStore generateMessageStore(String chatRoomId) {
 		MessageStore messageStore = new MessageStore();
 		messageStore.setChatRoomId(chatRoomId);
@@ -54,20 +60,19 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 
 	protected Message generateWelcomeMessage(String chatRoomId) {
 		Message messageDetail = new Message();
-		messageDetail.setMessageDestination("/topic/"+chatRoomId);
-		messageDetail.setMessageSenderId("Defaut");
+		messageDetail.setMessageDestination("/topic/" + chatRoomId);
+		messageDetail.setMessageSenderId("Default");
 		messageDetail.setMessageSendingTime(LocalDateTime.now());
 		messageDetail.setMesssageContent("Hello everyone!!");
 		return messageDetail;
 	}
 
-	private String createChatRoomId(String chatRoomName) {
-		LocalDate date = LocalDate.now();
-		String roomName = chatRoomName.replaceAll("\\s", ""); 
-		return  date+ "-"+roomName.toLowerCase() + "-" + UUID.randomUUID().toString().substring(0, 8);
-	}
-	
 	public List<Message> getMessages(String chatRoomId) {
 		return chatRoomRepository.findByChatRoomId(chatRoomId).getMessageStore().getMessageDetails();
+	}
+
+	public List<Long> addMembersInChatRoom(String chatRoomId, List<Long> membersId) {
+		chatRoomRepository.addUsersByChatRoomId(chatRoomId, membersId);
+		return null;
 	}
 }

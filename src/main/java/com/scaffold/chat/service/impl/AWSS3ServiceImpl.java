@@ -5,6 +5,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.UUID;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
@@ -26,28 +30,36 @@ public class AWSS3ServiceImpl implements AWSS3Service{
 
 	@Autowired private AmazonS3 amazonS3;
 	
-	@Value("${aws.s3.bucket}")
+	@Value("${cloud.aws.bucket.name}")
 	private String bucketName;
 	private String uniqueFileName=null;
 	
 	//Here Upload file on AWS S3 bucket......
 	@Override
 	@Async
-	public String uploadFile(MultipartFile multipartFile) {
+	public String uploadFile(MultipartFile multipartFile, HttpServletRequest request) {
 		try {
 			LOGGER.info("File upload in progress...");
 			File file = convertMultiPartFileToFile(multipartFile);
 			uniqueFileName = System.currentTimeMillis() +"-"+UUID.randomUUID().toString().substring(0, 3)+ "-" + file.getName();
 			PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, uniqueFileName, file);
 			amazonS3.putObject(putObjectRequest);
+			
 			LOGGER.info("File upload is completed.");
 			file.delete();
 		} catch (AmazonServiceException ex) {
 			LOGGER.error("Error= {} while uploading file.", ex.getMessage());
 		}
-		return uniqueFileName;
+		return generateDownloadLink(uniqueFileName, request);
 	}
 	
+	//Here generate file download Link.....
+	private String generateDownloadLink(String fileName, HttpServletRequest request) {
+		UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme(request.getScheme())
+				.host(request.getLocalName()).port(request.getServerPort()).path("chat/downloadFile/"+fileName).build();
+		return uriComponents.toUriString();
+	}
+
 	//Here Convert multipartFile into File..............
 	private File convertMultiPartFileToFile(MultipartFile multipartFile) {
 		File file = new File(multipartFile.getOriginalFilename());

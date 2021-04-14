@@ -1,3 +1,4 @@
+# AWS S3 configuration
 cloud:
  aws:
    credentials:
@@ -6,12 +7,8 @@ cloud:
      
    region:
      static: ap-south-1
-     
-   stack:
-     auto: false
-     
-appilication:
-  bucket:
-    name: communication-scaffold/scaffold-chat-data
+          
+   bucket:
+    name: ""
    
    
