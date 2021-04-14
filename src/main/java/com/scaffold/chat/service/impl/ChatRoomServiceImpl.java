@@ -9,8 +9,6 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import com.scaffold.chat.model.ChatRoom;
@@ -63,7 +61,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	protected Message generateWelcomeMessage(String chatRoomId) {
 		Message messageDetail = new Message();
 		messageDetail.setMessageDestination("/topic/" + chatRoomId);
-		messageDetail.setMessageSenderId("Default");
+		messageDetail.setMessageSenderId(1);
 		messageDetail.setMessageSendingTime(LocalDateTime.now());
 		messageDetail.setMesssageContent("Hello everyone!!");
 		return messageDetail;
@@ -92,5 +90,16 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		chatRoom.setChatRoomMemebersId(chatRoomMemebers);
 		ChatRoom saveMembers = chatRoomRepository.save(chatRoom);
 		return saveMembers.getChatRoomMemebersId();
+	}
+
+
+	@Override
+	public Message sendMessage(String chatRoomId, long messageSenderId, Message messageContent) {
+		MessageStore messageStore = chatRoomRepository.findByMessageStoreId(chatRoomId);
+		List<Message> messageDetails = messageStore.getMessageDetails();
+		messageDetails.add(messageContent);
+		messageStore.setMessageDetails(messageDetails);
+		//chatRoomRepository.save(messageStore);
+		return messageContent;
 	}
 }

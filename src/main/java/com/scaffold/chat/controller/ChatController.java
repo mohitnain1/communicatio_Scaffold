@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.scaffold.chat.model.Message;
 import com.scaffold.chat.service.ChatRoomService;
 
 import io.swagger.annotations.Api;
@@ -34,7 +35,7 @@ public class ChatController {
 	}
 	
 	//Add members in chatRoom....
-	@PutMapping(value = "/addUsers")
+	@PutMapping(value = "/addMembers")
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<Object> addMembersInChatRoom(@RequestParam String chatRoomId, 
 			@RequestParam List<Long> chatRoomMemebersId ) {
@@ -42,12 +43,13 @@ public class ChatController {
 	}
 	
 	//Remove members with chatRoom....
-		@PutMapping(value = "/removeUsers")
-		@ResponseStatus(HttpStatus.OK)
-		public ResponseEntity<Object> removeMembersWithChatRoom(@RequestParam String chatRoomId, 
-				@RequestParam List<Long> chatRoomMemebersId ) {
-			return new ResponseEntity<>(chatRoomServices.removeMembers(chatRoomId, chatRoomMemebersId), HttpStatus.OK);
-		}
+	@PutMapping(value = "/removeMembers")
+	@ResponseStatus(HttpStatus.OK)
+	public ResponseEntity<Object> removeMembersWithChatRoom(@RequestParam String chatRoomId,
+			@RequestParam List<Long> chatRoomMemebersId) {
+		return new ResponseEntity<>(chatRoomServices.removeMembers(chatRoomId, chatRoomMemebersId), HttpStatus.OK);
+	}
+	
 	
 	
 }
