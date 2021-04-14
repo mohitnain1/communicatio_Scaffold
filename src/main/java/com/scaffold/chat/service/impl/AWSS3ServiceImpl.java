@@ -53,6 +53,18 @@ public class AWSS3ServiceImpl implements AWSS3Service{
 		return generateDownloadLink(uniqueFileName, request);
 	}
 	
+	
+//	private String generateDownloadLink(HttpServletRequest request, String fileName) {
+//		RedirectUrlBuilder download_Uri = new RedirectUrlBuilder ();
+//		int serverPort = request.getServerPort();
+//		download_Uri.setScheme (request.getScheme ());
+//		download_Uri.setContextPath (request.getContextPath ());
+//		download_Uri.setPort (serverPort);
+//		download_Uri.setPathInfo ("/downloadFile/" + fileName);
+//		download_Uri.setServerName (request.getServerName ());
+//		return download_Uri.getUrl();
+//	}
+	
 	//Here generate file download Link.....
 	private String generateDownloadLink(String fileName, HttpServletRequest request) {
 		UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme(request.getScheme())
