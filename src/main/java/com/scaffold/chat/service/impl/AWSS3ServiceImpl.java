@@ -29,6 +29,7 @@ public class AWSS3ServiceImpl implements AWSS3Service{
 	private static final Logger LOGGER = LoggerFactory.getLogger(AWSS3ServiceImpl.class);
 
 	@Autowired private AmazonS3 amazonS3;
+	//@Autowired private Environment env;
 	
 	@Value("${cloud.aws.bucket.name}")
 	private String bucketName;
@@ -39,6 +40,9 @@ public class AWSS3ServiceImpl implements AWSS3Service{
 	@Async
 	public String uploadFile(MultipartFile multipartFile, HttpServletRequest request) {
 		try {
+			//String property = System.getenv("AWS_ACCESS_KEY_ID");
+			//String property2 = System.getenv("AWS_SECRET_ACCESS_KEY");
+			//System.out.println("env"+property2+"  "+property);
 			LOGGER.info("File upload in progress...");
 			File file = convertMultiPartFileToFile(multipartFile);
 			uniqueFileName = System.currentTimeMillis() +"-"+UUID.randomUUID().toString().substring(0, 3)+ "-" + file.getName();

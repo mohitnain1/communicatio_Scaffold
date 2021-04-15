@@ -71,35 +71,31 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		return chatRoomRepository.findByChatRoomId(chatRoomId).getMessageStore().getMessageDetails();
 	}
 
-
 	@Override
-	public List<Long> addMembers(String chatRoomId, List<Long> chatRoomMemebersId) {
+	public List<Long> addMembers(String chatRoomId, List<Long> newMemebersId) {
 		ChatRoom chatRoom = chatRoomRepository.findByChatRoomId(chatRoomId);
-		List<Long> chatRoomMemebers = chatRoom.getChatRoomMemebersId();
-		chatRoomMemebers.addAll(chatRoomMemebersId);
-		chatRoom.setChatRoomMemebersId(chatRoomMemebers);
-		ChatRoom saveMembers = chatRoomRepository.save(chatRoom);
-		return saveMembers.getChatRoomMemebersId();
+		List<Long> savedMemebersId = chatRoom.getChatRoomMemebersId();
+		newMemebersId.removeAll(savedMemebersId);
+		savedMemebersId.addAll(newMemebersId);
+		chatRoom.setChatRoomMemebersId(savedMemebersId);
+		ChatRoom allMembersId = chatRoomRepository.save(chatRoom);
+		LOGGER.info("Members added successfully....");
+		return allMembersId.getChatRoomMemebersId();
 	}
-
+	
 	@Override
-	public List<Long> removeMembers(String chatRoomId, List<Long> chatRoomMemebersId) {
+	public List<Long> removeMembers(String chatRoomId, List<Long> removeMemebersId) {
 		ChatRoom chatRoom = chatRoomRepository.findByChatRoomId(chatRoomId);
-		List<Long> chatRoomMemebers = chatRoom.getChatRoomMemebersId();
-		chatRoomMemebers.removeAll(chatRoomMemebersId);
-		chatRoom.setChatRoomMemebersId(chatRoomMemebers);
-		ChatRoom saveMembers = chatRoomRepository.save(chatRoom);
-		return saveMembers.getChatRoomMemebersId();
-	}
-
-
+		List<Long> savedMemebersId = chatRoom.getChatRoomMemebersId();
+		savedMemebersId.removeAll(removeMemebersId);
+		chatRoom.setChatRoomMemebersId(savedMemebersId);
+		ChatRoom allMembersId = chatRoomRepository.save(chatRoom);
+		LOGGER.info("Members removed successfully....");
+		return allMembersId.getChatRoomMemebersId();
+	}	
+	
 	@Override
-	public Message sendMessage(String chatRoomId, long messageSenderId, Message messageContent) {
-		MessageStore messageStore = chatRoomRepository.findByMessageStoreId(chatRoomId);
-		List<Message> messageDetails = messageStore.getMessageDetails();
-		messageDetails.add(messageContent);
-		messageStore.setMessageDetails(messageDetails);
-		//chatRoomRepository.save(messageStore);
-		return messageContent;
+	public Message sendMessage(String chatRoomId, long messageSenderId, String messageContent) {
+		return null;
 	}
 }

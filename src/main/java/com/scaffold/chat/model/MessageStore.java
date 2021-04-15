@@ -13,7 +13,6 @@ public class MessageStore {
 	
 	
 	public MessageStore(String chatRoomId, List<Message> messageDetails) {
-		super();
 		this.chatRoomId = chatRoomId;
 		this.messageDetails = messageDetails;
 	}
@@ -41,4 +40,12 @@ public class MessageStore {
 	public void setMessageDetails(List<Message> messageDetails) {
 		this.messageDetails = messageDetails;
 	}
+
+
+	@Override
+	public String toString() {
+		return "MessageStore [id=" + id + ", chatRoomId=" + chatRoomId + ", messageDetails=" + messageDetails + "]";
+	}
+	
+	
 }
