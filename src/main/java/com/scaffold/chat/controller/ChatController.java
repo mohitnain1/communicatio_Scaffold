@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.scaffold.chat.model.Message;
 import com.scaffold.chat.service.ChatRoomService;
 
 import io.swagger.annotations.Api;
@@ -50,6 +49,13 @@ public class ChatController {
 		return new ResponseEntity<>(chatRoomServices.removeMembers(chatRoomId, chatRoomMemebersId), HttpStatus.OK);
 	}
 	
-	
+	// Send message in chatRoom....
+//	@PutMapping(value = "/sendMessage")
+//	@ResponseStatus(HttpStatus.OK)
+//	public ResponseEntity<Object> sendMessage(@RequestParam String chatRoomId, @RequestParam long messageSenderId,
+//			@RequestParam String messageContent) {
+//		return new ResponseEntity<>(chatRoomServices.sendMessage(chatRoomId, messageSenderId, messageContent),
+//				HttpStatus.OK);
+//	}
 	
 }

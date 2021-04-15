@@ -12,6 +12,9 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
 @Configuration
 public class AWSS3Configuration {
+	
+	
+	
 	@Value("${cloud.aws.credentials.access-key}")
 	private String accessKeyId;
 	@Value("${cloud.aws.credentials.secret-key}")
@@ -21,6 +24,8 @@ public class AWSS3Configuration {
 	
 	@Bean
 	public AmazonS3 getAmazonS3Cient() {
+		secretAccessKey = System.getenv("AWS_SECRET_ACCESS_KEY");
+		accessKeyId = System.getenv("AWS_ACCESS_KEY_ID");
 		final BasicAWSCredentials basicAWSCredentials = new BasicAWSCredentials(accessKeyId, secretAccessKey);
 		return AmazonS3ClientBuilder.standard().withRegion(Regions.fromName(region)).withCredentials
 				(new AWSStaticCredentialsProvider(basicAWSCredentials)).build();

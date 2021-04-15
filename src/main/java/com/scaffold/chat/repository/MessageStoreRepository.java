@@ -7,5 +7,6 @@ import com.scaffold.chat.model.MessageStore;
 
 @Repository
 public interface MessageStoreRepository extends MongoRepository<MessageStore, String>{
+	public MessageStore findByChatRoomId(String chatRoomId);
 
 }

@@ -13,6 +13,6 @@ public interface ChatRoomService {
 	public List<Long> addMembers(String chatRoomId, List<Long> chatRoomMemebersId);
 	public List<Long> removeMembers(String chatRoomId, List<Long> chatRoomMemebersId);
 	
-	public Message sendMessage(String chatRoomId, long messageSenderId, Message messageContent);
+	public Message sendMessage(String chatRoomId, long messageSenderId, String messageContent);
 	
 }
