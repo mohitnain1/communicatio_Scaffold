@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.scaffold.chat.service.ChatRoomService;
 
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
 
 @RestController
 @Api(value = "Chat Room Controller")
@@ -25,28 +25,44 @@ public class ChatController {
 	@Autowired public ChatRoomService chatRoomServices;
 	
 	//chatRoom creation....
-	@ApiOperation(value = "Create chatroom", notes = "This api is used to create chatroom.")
-	@PostMapping(value = "/create-chatRoom")
-	@ResponseStatus(HttpStatus.OK)
-	public ResponseEntity<Object> createChatroom(@RequestParam String chatRoomName, 
-			@RequestParam long chatRoomCreatorId, @RequestParam List<Long> chatRoomMemebersId ) {
-		return new ResponseEntity<>(chatRoomServices.createChatRoom(chatRoomName, chatRoomCreatorId, chatRoomMemebersId), HttpStatus.OK);
+	//@ApiOperation(value = "Create chatroom", notes = "This api is used to create chatroom.")
+	@PostMapping(value = "/chatRoom")
+	@ResponseStatus(HttpStatus.CREATED)
+	public ResponseEntity<Object> createChatRoom(@RequestParam String chatRoomName, 
+			@RequestParam long creatorId, @RequestParam List<Long> membersId ) {
+		try {
+			String chatRoomId = chatRoomServices.createChatRoom(chatRoomName, creatorId, membersId);
+			return new ResponseEntity<>(chatRoomId, HttpStatus.CREATED);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(chatRoomName +" Chatroom not created...", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 	
 	//Add members in chatRoom....
-	@PutMapping(value = "/addMembers")
+	@PutMapping(value = "/members")
 	@ResponseStatus(HttpStatus.OK)
-	public ResponseEntity<Object> addMembersInChatRoom(@RequestParam String chatRoomId, 
-			@RequestParam List<Long> chatRoomMemebersId ) {
-		return new ResponseEntity<>(chatRoomServices.addMembers(chatRoomId, chatRoomMemebersId), HttpStatus.OK);
+	public ResponseEntity<Object> addMembers(@RequestParam String chatRoomId,@RequestParam List<Long> membersId ) {
+		try {
+			List<Long> addMembersId = chatRoomServices.addMembers(chatRoomId, membersId);
+			return new ResponseEntity<>(addMembersId, HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(membersId+" membersId not added in chatRoom", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 	
 	//Remove members with chatRoom....
-	@PutMapping(value = "/removeMembers")
+	@DeleteMapping(value = "/members")
 	@ResponseStatus(HttpStatus.OK)
-	public ResponseEntity<Object> removeMembersWithChatRoom(@RequestParam String chatRoomId,
-			@RequestParam List<Long> chatRoomMemebersId) {
-		return new ResponseEntity<>(chatRoomServices.removeMembers(chatRoomId, chatRoomMemebersId), HttpStatus.OK);
+	public ResponseEntity<Object> removeMembers(@RequestParam String chatRoomId,@RequestParam List<Long> membersId) {
+		try {
+			List<Long> removedMembersId = chatRoomServices.removeMembers(chatRoomId, membersId);
+			return new ResponseEntity<>(removedMembersId, HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(membersId+" membersId not deleted with chatRoom", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 	
 	// Send message in chatRoom....

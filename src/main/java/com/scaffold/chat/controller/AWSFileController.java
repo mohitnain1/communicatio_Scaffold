@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,29 +30,31 @@ public class AWSFileController {
 
 	// fileUpload on S3 bucket........
 	@ApiOperation(value = "Upload File on S3 Bucket", notes = "This api is used to upload the file on S# Bucket.")
-	@PostMapping(value = "/uploadFile")
+	@PostMapping(value = "/upload")
 	@ResponseStatus(HttpStatus.OK)
-	public ResponseEntity<Object> uploadFile(@RequestPart(value = "file") final MultipartFile multipartFile,
-			HttpServletRequest request) {
-		String fileName = awsService.uploadFile(multipartFile, request);
-		return new ResponseEntity<>(fileName, HttpStatus.OK);
+	public ResponseEntity<Object> uploadFile(@RequestPart(value = "file") 
+		final MultipartFile multipartFile,HttpServletRequest request) {
+			String fileName = awsService.uploadFile(multipartFile, request);
+			return new ResponseEntity<>(fileName, HttpStatus.OK);
 	}
 
 	// download file from s3 bucket.....
 	@ApiOperation(value = "Download File from S3 Bucket", notes = "This api is used to download the file from S3 Bucket.")
-	@GetMapping(value = "/downloadFile/{fileName}")
+	@GetMapping(value = "/download/{fileName}")
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<Object> downloadFile(@PathVariable String fileName) {
 		byte[] data = awsService.downloadFile(fileName);
 		ByteArrayResource resource = new ByteArrayResource(data);
-		return ResponseEntity.ok().contentLength(data.length).header("content-type", "appilication/octet-stream")
-				.header("content-disposition", "attachment; filename=\"" + fileName + "\"").body(resource);
+		return ResponseEntity.ok()
+				.contentLength(data.length)
+				.header("content-type", "appilication/octet-stream")
+				.header("content-disposition", "attachment; filename=\"" + fileName + "\"")
+				.body(resource);
 	}
 
 	// delete file from S3 bucket....
-	// @DeleteMapping(value= "/deleteFile/{fileName}")
 	@ApiOperation(value = "Delete File from S3 Bucket", notes = "This api is used to delete the file from S3 Bucket.")
-	@GetMapping(value = "/deleteFile/{fileName}")
+	@DeleteMapping(value = "/delete/{fileName}")
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<Object> deleteFile(@PathVariable String fileName) {
 		return new ResponseEntity<>(awsService.deleteFile(fileName), HttpStatus.OK);
