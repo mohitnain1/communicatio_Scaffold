@@ -74,28 +74,39 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	@Override
 	public List<Long> addMembers(String chatRoomId, List<Long> newMemebersId) {
 		ChatRoom chatRoom = chatRoomRepository.findByChatRoomId(chatRoomId);
-		List<Long> savedMemebersId = chatRoom.getChatRoomMemebersId();
+		List<Long> savedMemebersId = chatRoom.getChatRoomMembersId();
 		newMemebersId.removeAll(savedMemebersId);
 		savedMemebersId.addAll(newMemebersId);
-		chatRoom.setChatRoomMemebersId(savedMemebersId);
+		chatRoom.setChatRoomMembersId(savedMemebersId);
 		ChatRoom allMembersId = chatRoomRepository.save(chatRoom);
 		LOGGER.info("Members added successfully....");
-		return allMembersId.getChatRoomMemebersId();
+		return allMembersId.getChatRoomMembersId();
 	}
 	
 	@Override
 	public List<Long> removeMembers(String chatRoomId, List<Long> removeMemebersId) {
 		ChatRoom chatRoom = chatRoomRepository.findByChatRoomId(chatRoomId);
-		List<Long> savedMemebersId = chatRoom.getChatRoomMemebersId();
+		List<Long> savedMemebersId = chatRoom.getChatRoomMembersId();
 		savedMemebersId.removeAll(removeMemebersId);
-		chatRoom.setChatRoomMemebersId(savedMemebersId);
+		chatRoom.setChatRoomMembersId(savedMemebersId);
 		ChatRoom allMembersId = chatRoomRepository.save(chatRoom);
 		LOGGER.info("Members removed successfully....");
-		return allMembersId.getChatRoomMemebersId();
+		return allMembersId.getChatRoomMembersId();
 	}	
 	
 	@Override
 	public Message sendMessage(String chatRoomId, long messageSenderId, String messageContent) {
-		return null;
+		MessageStore messageStore = messageStoreRepository.findByChatRoomId(chatRoomId);
+		List<Message> messageDetails1 = messageStore.getMessageDetails();
+		Message messageDetail = new Message();
+		messageDetail.setMessageDestination("/topic/" + chatRoomId);
+		messageDetail.setMessageSenderId(messageSenderId);
+		messageDetail.setMessageSendingTime(LocalDateTime.now());
+		messageDetail.setMesssageContent(messageContent);
+		messageDetails1.add(messageDetail);
+		messageStore.setMessageDetails(messageDetails1);
+		messageStoreRepository.save(messageStore);
+		LOGGER.info("Message send successfully....");
+		return messageDetail;
 	}
 }

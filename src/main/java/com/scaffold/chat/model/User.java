@@ -1,12 +1,13 @@
 package com.scaffold.chat.model;
 
+import java.security.Principal;
 import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(value = "usersDetail")
-public class User {
+public class User implements Principal {
 	@Id
 	private String id;
 	private long userId;
@@ -51,6 +52,10 @@ public class User {
 	}
 	public void setUserLastSeen(LocalDateTime userLastSeen) {
 		this.userLastSeen = userLastSeen;
+	}
+	@Override
+	public String getName() {
+		return username;
 	}
 		
 }

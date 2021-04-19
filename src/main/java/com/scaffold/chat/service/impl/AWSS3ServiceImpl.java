@@ -71,7 +71,7 @@ public class AWSS3ServiceImpl implements AWSS3Service{
 	//Here generate file download Link.....
 	private String generateDownloadLink(HttpServletRequest request, String fileName) {
 		UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme(request.getScheme())
-				.host(request.getLocalName()).port(request.getServerPort()).path("chat/downloadFile/"+fileName).build();
+				.host(request.getLocalName()).port(request.getServerPort()).path("chat/download/"+fileName).build();
 		return uriComponents.toUriString();
 	}
 
