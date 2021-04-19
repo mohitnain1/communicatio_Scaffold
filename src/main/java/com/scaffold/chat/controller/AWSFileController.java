@@ -45,6 +45,7 @@ public class AWSFileController {
 	public ResponseEntity<Object> downloadFile(@PathVariable String fileName) {
 		byte[] data = awsService.downloadFile(fileName);
 		ByteArrayResource resource = new ByteArrayResource(data);
+		fileName=fileName.substring(18);
 		return ResponseEntity.ok()
 				.contentLength(data.length)
 				.header("content-type", "appilication/octet-stream")

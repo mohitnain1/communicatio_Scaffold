@@ -3,7 +3,7 @@ package com.scaffold.chat.model;
 public class Message1 {
 	 public enum MessageType {
 	        CHAT, JOIN, LEAVE
-	    }
+	    } 
 
 	    private MessageType messageType;
 	    private String content;

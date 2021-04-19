@@ -65,13 +65,6 @@ public class ChatController {
 		}
 	}
 	
-	// Send message in chatRoom....
-//	@PutMapping(value = "/sendMessage")
-//	@ResponseStatus(HttpStatus.OK)
-//	public ResponseEntity<Object> sendMessage(@RequestParam String chatRoomId, @RequestParam long messageSenderId,
-//			@RequestParam String messageContent) {
-//		return new ResponseEntity<>(chatRoomServices.sendMessage(chatRoomId, messageSenderId, messageContent),
-//				HttpStatus.OK);
-//	}
+
 	
 }

@@ -21,7 +21,7 @@ public class WebSocketController {
 	@MessageMapping("/chat/{chatRoomId}/sendMessage")
 	public Object chatRoom(@DestinationVariable String chatRoomId, @Payload Message1 message, Principal principal) {
 		simpMessagingTemplate.convertAndSend(format("/topic/%s", chatRoomId), message);
-		return principal.getName();
+		return null;
 	}
 	
     @MessageMapping("/chat/{chatRoomId}/addUser")
