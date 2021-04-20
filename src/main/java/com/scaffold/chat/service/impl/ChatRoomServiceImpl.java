@@ -93,20 +93,4 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		LOGGER.info("Members removed successfully....");
 		return allMembersId.getChatRoomMembersId();
 	}	
-	
-	@Override
-	public Message sendMessage(String chatRoomId, long messageSenderId, String messageContent) {
-		MessageStore messageStore = messageStoreRepository.findByChatRoomId(chatRoomId);
-		List<Message> messageDetails1 = messageStore.getMessageDetails();
-		Message messageDetail = new Message();
-		messageDetail.setMessageDestination("/topic/" + chatRoomId);
-		messageDetail.setMessageSenderId(messageSenderId);
-		messageDetail.setMessageSendingTime(LocalDateTime.now());
-		messageDetail.setMesssageContent(messageContent);
-		messageDetails1.add(messageDetail);
-		messageStore.setMessageDetails(messageDetails1);
-		messageStoreRepository.save(messageStore);
-		LOGGER.info("Message send successfully....");
-		return messageDetail;
-	}
 }

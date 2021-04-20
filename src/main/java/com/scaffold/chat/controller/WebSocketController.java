@@ -14,14 +14,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.scaffold.chat.model.Message1;
 
+
 @RestController
 public class WebSocketController {
 	@Autowired private SimpMessagingTemplate simpMessagingTemplate;
-	
+
 	@MessageMapping("/chat/{chatRoomId}/sendMessage")
 	public Object chatRoom(@DestinationVariable String chatRoomId, @Payload Message1 message, Principal principal) {
 		simpMessagingTemplate.convertAndSend(format("/topic/%s", chatRoomId), message);
-		return null;
+		return message;
 	}
 	
     @MessageMapping("/chat/{chatRoomId}/addUser")
@@ -34,9 +35,9 @@ public class WebSocketController {
             leaveMessage.setSender(chatMessage.getSender());
             simpMessagingTemplate.convertAndSend(format("/topic/%s", currentRoomId), leaveMessage);
         }
-        headerAccessor.getSessionAttributes().put("name", chatMessage.getSender());
+        headerAccessor.getSessionAttributes().put("username", chatMessage.getSender());
+    	
         simpMessagingTemplate.convertAndSend(format("/topic/%s", chatRoomId), chatMessage);
     }
-	
-	
+    
 }

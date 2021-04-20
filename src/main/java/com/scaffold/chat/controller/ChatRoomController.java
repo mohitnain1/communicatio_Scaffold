@@ -64,7 +64,4 @@ public class ChatRoomController {
 			return new ResponseEntity<>(membersId+" membersId not deleted with chatRoom", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-	
-
-	
 }
