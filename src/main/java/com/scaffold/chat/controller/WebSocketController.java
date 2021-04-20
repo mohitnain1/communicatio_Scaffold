@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.scaffold.chat.model.Message1;
 
-
-@RestController
 public class WebSocketController {
 	@Autowired private SimpMessagingTemplate simpMessagingTemplate;
 
