@@ -8,7 +8,7 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
-import com.scaffold.chat.ws.event.UserChannelInterceptor;
+import com.scaffold.chat.ws.handshake.UserInterceptor;
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
@@ -29,7 +29,7 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
 	}
 
 	@Bean
-	public UserChannelInterceptor sessionChannelInterceptor() {
-	   return new UserChannelInterceptor();
+	public UserInterceptor sessionChannelInterceptor() {
+	   return new UserInterceptor();
 	}
 }

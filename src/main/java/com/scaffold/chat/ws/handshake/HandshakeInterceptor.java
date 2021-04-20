@@ -1,4 +1,4 @@
-package com.scaffold.chat.ws.event;
+package com.scaffold.chat.ws.handshake;
 
 import java.security.Principal;
 import java.util.Map;
