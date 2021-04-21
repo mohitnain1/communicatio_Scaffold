@@ -1,4 +1,4 @@
-package com.scaffold.chat.configuration;
+package com.scaffold.chat.ws.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
@@ -7,7 +7,7 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
-import com.scaffold.chat.ws.handshake.WebSocketChannelInterceptor;
+import com.scaffold.chat.ws.event.WebSocketChannelInterceptor;
 
 @Configuration
 @EnableWebSocketMessageBroker

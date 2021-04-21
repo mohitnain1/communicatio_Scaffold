@@ -1,4 +1,7 @@
-package com.scaffold.chat.ws.handshake;
+package com.scaffold.chat.ws.event;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,8 +37,12 @@ public class WebSocketChannelInterceptor implements ChannelInterceptor {
 	@SuppressWarnings("unchecked")
 	private void onConnectionRequest(Message<?> message, StompHeaderAccessor accessor) {
 		MultiValueMap<String, String> nativeHeaders = message.getHeaders().get(StompHeaderAccessor.NATIVE_HEADERS, MultiValueMap.class);
-		UserCredentials credentials = new UserCredentials(0, nativeHeaders.get("imageLink").toString(), nativeHeaders.get("username").toString());
+		
+		List<String> userData = nativeHeaders.get("userId");
+		List<Long> getUserId = userData.stream().map(Long::parseLong).collect(Collectors.toList());
+		UserCredentials credentials = new UserCredentials(getUserId.get(0), nativeHeaders.get("imageLink").toString(), nativeHeaders.get("username").toString());
 		accessor.setUser(credentials);
+		log.info("This user connected {}", accessor.getUser());
 	}
 
 	private void onMessage(Message<?> message, StompHeaderAccessor accessor) {

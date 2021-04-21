@@ -1,10 +1,11 @@
-package com.scaffold.chat.controller;
+package com.scaffold.chat.ws.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.scaffold.chat.model.ChatPayload;
 import com.scaffold.security.domains.UserCredentials;
