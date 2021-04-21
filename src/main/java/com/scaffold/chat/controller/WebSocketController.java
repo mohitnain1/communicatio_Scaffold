@@ -18,7 +18,7 @@ public class WebSocketController {
 
 	@MessageMapping("/chat/{chatRoomId}.conversations")
 	public Object chatRoom(@DestinationVariable String chatRoomId, @Payload ChatPayload message, UserCredentials principal) {
-		simpMessagingTemplate.convertAndSend("/topic/"+chatRoomId+".conversations", message);
+		simpMessagingTemplate.convertAndSend("/topic/chat."+chatRoomId+".conversations", message);
 		return message;
 	}    
 }
