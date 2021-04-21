@@ -1,4 +1,4 @@
-package com.scaffold.chat.controller;
+package com.scaffold.chat.ws.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
