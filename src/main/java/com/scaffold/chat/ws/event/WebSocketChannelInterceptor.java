@@ -1,5 +1,6 @@
 package com.scaffold.chat.ws.event;
 
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,35 +17,53 @@ import org.springframework.util.MultiValueMap;
 
 import com.scaffold.chat.model.ChatPayload;
 import com.scaffold.security.domains.UserCredentials;
+import com.scaffold.security.domains.UserEvent;
+import com.scaffold.security.domains.UserSessionRepo;
 
 public class WebSocketChannelInterceptor implements ChannelInterceptor {
 	
 	private final MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
-	
 	private static final Logger log = LoggerFactory.getLogger(WebSocketChannelInterceptor.class);
-	
+
 	@Override
 	public Message<?> preSend(Message<?> message, MessageChannel channel) {
 		StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-		if(accessor.getCommand().equals(StompCommand.CONNECT)) {
-			onConnectionRequest(message, accessor);
-		} else if(accessor.getCommand().equals(StompCommand.SEND)) {
+		if (accessor.getCommand().equals(StompCommand.CONNECT)) {
+			handleSessionConnected(message, accessor);
+		} else if (accessor.getCommand().equals(StompCommand.DISCONNECT)) {
+			handleSessionDisconnect(message, accessor);
+		}else if (accessor.getCommand().equals(StompCommand.SEND)) {
 			onMessage(message, accessor);
 		}
 		return message;
 	}
 
 	@SuppressWarnings("unchecked")
-	private void onConnectionRequest(Message<?> message, StompHeaderAccessor accessor) {
-		MultiValueMap<String, String> nativeHeaders = message.getHeaders().get(StompHeaderAccessor.NATIVE_HEADERS, MultiValueMap.class);
-		
+	private void handleSessionConnected(Message<?> message, StompHeaderAccessor accessor) {
+		MultiValueMap<String, String> nativeHeaders = message.getHeaders().get(StompHeaderAccessor.NATIVE_HEADERS,
+				MultiValueMap.class);
+		String sessionId = (String) message.getHeaders().get(StompHeaderAccessor.SESSION_ID_HEADER);
 		List<String> userData = nativeHeaders.get("userId");
 		List<Long> getUserId = userData.stream().map(Long::parseLong).collect(Collectors.toList());
 		UserCredentials credentials = new UserCredentials(getUserId.get(0), nativeHeaders.get("imageLink").toString(), nativeHeaders.get("username").toString());
 		accessor.setUser(credentials);
-		log.info("This user connected {}", accessor.getUser());
+		
+		UserSessionRepo userSessions= UserSessionRepo.getInstance();
+		List<String> username = nativeHeaders.get("username");
+		UserEvent loginEvent = new UserEvent(getUserId.get(0), username.get(0), sessionId);
+		userSessions.add(sessionId, loginEvent);	
+		log.info("The user connected {}", loginEvent);
 	}
-
+	
+	private void handleSessionDisconnect(Message<?> message, StompHeaderAccessor accessor) {
+		String sessionId = (String) message.getHeaders().get(StompHeaderAccessor.SESSION_ID_HEADER);
+		UserSessionRepo userSessions= UserSessionRepo.getInstance();
+		UserEvent logout = userSessions.getParticipant(sessionId);
+		logout.setTime(new Date());
+		userSessions.removeParticipant(sessionId);
+		log.info("The user disconnected {}", logout);
+	}
+	
 	private void onMessage(Message<?> message, StompHeaderAccessor accessor) {
 		ChatPayload messagePayload = (ChatPayload)converter.fromMessage(message, ChatPayload.class);
 		messagePayload.setMessageDestination(accessor.getDestination());
