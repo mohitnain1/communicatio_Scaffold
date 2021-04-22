@@ -25,7 +25,7 @@ public abstract class WebSocketChannelInterceptor implements ChannelInterceptor 
 	
 	private static final Logger log = LoggerFactory.getLogger(WebSocketChannelInterceptor.class);
 	final UserSessionRepo userSessions= UserSessionRepo.getInstance();
-	
+	 
 	private UsersDetailRepository userDetailsRepository;
 	
 	public WebSocketChannelInterceptor(UsersDetailRepository usersDetailRepository) {
@@ -49,15 +49,9 @@ public abstract class WebSocketChannelInterceptor implements ChannelInterceptor 
 	private void handleSessionConnected(Message<?> message, StompHeaderAccessor accessor) {
 		MultiValueMap<String, String> nativeHeaders = message.getHeaders().get(StompHeaderAccessor.NATIVE_HEADERS,
 				MultiValueMap.class);
-<<<<<<< HEAD
-		UserCredentials credentials = new UserCredentials(1, nativeHeaders.get("imageLink").toString(), nativeHeaders.get("username").toString());
-||||||| merged common ancestors
-		UserCredentials credentials = new UserCredentials(0, nativeHeaders.get("imageLink").toString(), nativeHeaders.get("username").toString());
-=======
 		List<String> userData = nativeHeaders.get("userId");
 		List<Long> getUserId = userData.stream().map(Long::parseLong).collect(Collectors.toList());
 		UserCredentials credentials = new UserCredentials(getUserId.get(0), nativeHeaders.get("imageLink").toString(), nativeHeaders.get("username").toString());
->>>>>>> 352772c25033d110c4f826290b0c5b60fe28751a
 		userConnectEventHandler(message, accessor, nativeHeaders, credentials);
 		accessor.setUser(credentials);
 		saveOrUpdateUserInDatabase(credentials);
@@ -80,11 +74,11 @@ public abstract class WebSocketChannelInterceptor implements ChannelInterceptor 
 		String sessionId = (String) message.getHeaders().get(StompHeaderAccessor.SESSION_ID_HEADER);
 		UserEvent loginEvent = new UserEvent(credentials.getUserId(), credentials.getUsername(), sessionId);
 		userSessions.add(sessionId, loginEvent);
-		log.info("The user connected {}", loginEvent);
 	}
 	
 	private void handleSessionDisconnect(Message<?> message, StompHeaderAccessor accessor) {
 		String sessionId = (String) message.getHeaders().get(StompHeaderAccessor.SESSION_ID_HEADER);
+		UserSessionRepo userSessions= UserSessionRepo.getInstance();
 		UserEvent logout = userSessions.getParticipant(sessionId);
 		logout.setTime(new Date());
 		userSessions.removeParticipant(sessionId);
