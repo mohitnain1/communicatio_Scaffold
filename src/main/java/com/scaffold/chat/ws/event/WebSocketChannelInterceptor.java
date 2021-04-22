@@ -25,7 +25,7 @@ public abstract class WebSocketChannelInterceptor implements ChannelInterceptor 
 	
 	private static final Logger log = LoggerFactory.getLogger(WebSocketChannelInterceptor.class);
 	final UserSessionRepo userSessions= UserSessionRepo.getInstance();
-	
+	 
 	private UsersDetailRepository userDetailsRepository;
 	
 	public WebSocketChannelInterceptor(UsersDetailRepository usersDetailRepository) {
