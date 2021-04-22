@@ -1,6 +1,7 @@
 package com.scaffold.chat.service.impl;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -22,26 +23,16 @@ public class MessageServiceImpl implements MessageService {
 	@Autowired public MessageStoreRepository messageStoreRepository;
 
 	@Override
-	public Message sendMessage(String chatRoomId, long messageSenderId, String messageContent) {
-		MessageStore messageStore = messageStoreRepository.findByChatRoomId(chatRoomId);
-		List<Message> messageDetails1 = messageStore.getMessageDetails();
-		Message messageDetail = new Message();
-		messageDetail.setMessageDestination("/topic/" + chatRoomId);
-		messageDetail.setMessageSenderId(messageSenderId);
-		messageDetail.setMessageSendingTime(LocalDateTime.now());
-		messageDetail.setMesssageContent(messageContent);
-		messageDetails1.add(messageDetail);
-		messageStore.setMessageDetails(messageDetails1);
-		messageStoreRepository.save(messageStore);
-		LOGGER.info("Message send successfully....");
-		return messageDetail;
-	}
-
-	@Override
-	public List<Message> getAllMessages(String chatRoomId) {
-		MessageStore messageStore = messageStoreRepository.findByChatRoomId(chatRoomId);
-		List<Message> messageDetails = messageStore.getMessageDetails();
-		return messageDetails;
+	public List<Message> getAllMessages(String chatRoomId, String chatRoomAccessKey) {
+		byte[] accessKey = chatRoomAccessKey.getBytes();
+		byte[] roomAccessKey = chatRoomRepository.findByChatRoomId(chatRoomId).getRoomAccessKey();
+		if(Arrays.equals(accessKey, roomAccessKey)) {
+			MessageStore messageStore = messageStoreRepository.findByChatRoomId(chatRoomId);
+			List<Message> messageDetails = messageStore.getMessageDetails();
+			return messageDetails;
+		} else {
+			return new ArrayList<>();
+		}
 	}
 
 }

@@ -1,30 +1,35 @@
 package com.scaffold.chat.ws.event;
 
+import java.time.LocalDateTime;
 import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.util.MultiValueMap;
 
-import com.scaffold.chat.model.ChatPayload;
+import com.scaffold.chat.model.User;
+import com.scaffold.chat.repository.UsersDetailRepository;
 import com.scaffold.security.domains.UserCredentials;
 import com.scaffold.security.domains.UserEvent;
 import com.scaffold.security.domains.UserSessionRepo;
 
-public class WebSocketChannelInterceptor implements ChannelInterceptor {
+public abstract class WebSocketChannelInterceptor implements ChannelInterceptor {
 	
-	private final MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
 	private static final Logger log = LoggerFactory.getLogger(WebSocketChannelInterceptor.class);
-
+	final UserSessionRepo userSessions= UserSessionRepo.getInstance();
+	
+	private UsersDetailRepository userDetailsRepository;
+	
+	public WebSocketChannelInterceptor(UsersDetailRepository usersDetailRepository) {
+		userDetailsRepository = usersDetailRepository;
+	}
+	
 	@Override
 	public Message<?> preSend(Message<?> message, MessageChannel channel) {
 		StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
@@ -42,17 +47,29 @@ public class WebSocketChannelInterceptor implements ChannelInterceptor {
 	private void handleSessionConnected(Message<?> message, StompHeaderAccessor accessor) {
 		MultiValueMap<String, String> nativeHeaders = message.getHeaders().get(StompHeaderAccessor.NATIVE_HEADERS,
 				MultiValueMap.class);
-		String sessionId = (String) message.getHeaders().get(StompHeaderAccessor.SESSION_ID_HEADER);
-		List<String> userData = nativeHeaders.get("userId");
-		List<Long> getUserId = userData.stream().map(Long::parseLong).collect(Collectors.toList());
-		UserCredentials credentials = new UserCredentials(getUserId.get(0), nativeHeaders.get("imageLink").toString(), nativeHeaders.get("username").toString());
+		UserCredentials credentials = new UserCredentials(0, nativeHeaders.get("imageLink").toString(), nativeHeaders.get("username").toString());
+		userConnectEventHandler(message, accessor, nativeHeaders, credentials);
 		accessor.setUser(credentials);
-		
-		UserSessionRepo userSessions= UserSessionRepo.getInstance();
-		List<String> username = nativeHeaders.get("username");
-		UserEvent loginEvent = new UserEvent(getUserId.get(0), username.get(0), sessionId);
-		userSessions.add(sessionId, loginEvent);	
-		log.info("The user connected {}", loginEvent);
+		saveOrUpdateUserInDatabase(credentials);
+	}
+	
+	private void saveOrUpdateUserInDatabase(UserCredentials credentials) {
+		userDetailsRepository.findByUserId(credentials.getUserId()).orElseGet(() -> {
+			User user = new User();
+			user.setUserId(credentials.getUserId());
+			user.setUsername(credentials.getUsername());
+			user.setUserProfilePicture(credentials.getImageLink());
+			user.setUserLastSeen(LocalDateTime.now());
+			log.info("Saved new User");
+			return userDetailsRepository.save(user);
+		});
+	}
+
+	private void userConnectEventHandler(Message<?> message, StompHeaderAccessor accessor,
+			MultiValueMap<String, String> nativeHeaders, UserCredentials credentials) {
+		String sessionId = (String) message.getHeaders().get(StompHeaderAccessor.SESSION_ID_HEADER);
+		UserEvent loginEvent = new UserEvent(credentials.getUserId(), credentials.getUsername(), sessionId);
+		userSessions.add(sessionId, loginEvent);
 	}
 	
 	private void handleSessionDisconnect(Message<?> message, StompHeaderAccessor accessor) {
@@ -64,9 +81,5 @@ public class WebSocketChannelInterceptor implements ChannelInterceptor {
 		log.info("The user disconnected {}", logout);
 	}
 	
-	private void onMessage(Message<?> message, StompHeaderAccessor accessor) {
-		ChatPayload messagePayload = (ChatPayload)converter.fromMessage(message, ChatPayload.class);
-		messagePayload.setMessageDestination(accessor.getDestination());
-		log.info("Got Message {}", messagePayload.toString());
-	}
+	protected abstract void onMessage(Message<?> message, StompHeaderAccessor accessor);
 }
