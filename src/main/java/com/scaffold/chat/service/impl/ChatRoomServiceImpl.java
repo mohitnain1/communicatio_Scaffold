@@ -45,7 +45,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		chatRoom.setChatRoomType("Developer-Testing");
 		chatRoom.setChatRoomCreationDate(LocalDateTime.now());
 		chatRoom.setChatRoomLastConversationDate(LocalDateTime.now());
-		chatRoom.setChatRoomId(createChatRoomId(chatRoomName));
+		chatRoom.setChatRoomId(createChatRoomId());
 		chatRoom.setMessageStore(generateMessageStore(chatRoom.getChatRoomId()));
 		try {
 			chatRoom.setRoomAccessKey(generateChatRoomAccessKey());
@@ -80,9 +80,11 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		});
 	}
 
-	private String createChatRoomId(String chatRoomName) {
-		String roomName = chatRoomName.replaceAll("\\s", "");
-		return System.currentTimeMillis() + roomName.toLowerCase() + UUID.randomUUID().toString().substring(0, 8);
+	private String createChatRoomId() {
+		String roomName = UUID.randomUUID().toString().substring(0, 6)+System.
+				currentTimeMillis()+UUID.randomUUID().toString().substring(0, 6);
+		roomName=roomName.replaceAll("[-+.^:,]","");
+		return roomName;
 	}
 
 	private MessageStore generateMessageStore(String chatRoomId) {

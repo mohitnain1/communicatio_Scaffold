@@ -47,7 +47,7 @@ public abstract class WebSocketChannelInterceptor implements ChannelInterceptor 
 	private void handleSessionConnected(Message<?> message, StompHeaderAccessor accessor) {
 		MultiValueMap<String, String> nativeHeaders = message.getHeaders().get(StompHeaderAccessor.NATIVE_HEADERS,
 				MultiValueMap.class);
-		UserCredentials credentials = new UserCredentials(0, nativeHeaders.get("imageLink").toString(), nativeHeaders.get("username").toString());
+		UserCredentials credentials = new UserCredentials(1, nativeHeaders.get("imageLink").toString(), nativeHeaders.get("username").toString());
 		userConnectEventHandler(message, accessor, nativeHeaders, credentials);
 		accessor.setUser(credentials);
 		saveOrUpdateUserInDatabase(credentials);
@@ -70,11 +70,11 @@ public abstract class WebSocketChannelInterceptor implements ChannelInterceptor 
 		String sessionId = (String) message.getHeaders().get(StompHeaderAccessor.SESSION_ID_HEADER);
 		UserEvent loginEvent = new UserEvent(credentials.getUserId(), credentials.getUsername(), sessionId);
 		userSessions.add(sessionId, loginEvent);
+		log.info("The user connected {}", loginEvent);
 	}
 	
 	private void handleSessionDisconnect(Message<?> message, StompHeaderAccessor accessor) {
 		String sessionId = (String) message.getHeaders().get(StompHeaderAccessor.SESSION_ID_HEADER);
-		UserSessionRepo userSessions= UserSessionRepo.getInstance();
 		UserEvent logout = userSessions.getParticipant(sessionId);
 		logout.setTime(new Date());
 		userSessions.removeParticipant(sessionId);

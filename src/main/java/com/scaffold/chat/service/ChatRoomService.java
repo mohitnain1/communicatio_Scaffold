@@ -14,5 +14,5 @@ public interface ChatRoomService {
 	
 	public List<Long> removeMembers(String chatRoomId, List<Long> chatRoomMemebersId);
 	
-	List<String> getUserChatRooms(long userId);
+	public List<String> getUserChatRooms(long userId);
 }
