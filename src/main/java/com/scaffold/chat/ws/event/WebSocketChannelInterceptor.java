@@ -2,6 +2,8 @@ package com.scaffold.chat.ws.event;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +49,15 @@ public abstract class WebSocketChannelInterceptor implements ChannelInterceptor 
 	private void handleSessionConnected(Message<?> message, StompHeaderAccessor accessor) {
 		MultiValueMap<String, String> nativeHeaders = message.getHeaders().get(StompHeaderAccessor.NATIVE_HEADERS,
 				MultiValueMap.class);
+<<<<<<< HEAD
 		UserCredentials credentials = new UserCredentials(1, nativeHeaders.get("imageLink").toString(), nativeHeaders.get("username").toString());
+||||||| merged common ancestors
+		UserCredentials credentials = new UserCredentials(0, nativeHeaders.get("imageLink").toString(), nativeHeaders.get("username").toString());
+=======
+		List<String> userData = nativeHeaders.get("userId");
+		List<Long> getUserId = userData.stream().map(Long::parseLong).collect(Collectors.toList());
+		UserCredentials credentials = new UserCredentials(getUserId.get(0), nativeHeaders.get("imageLink").toString(), nativeHeaders.get("username").toString());
+>>>>>>> 352772c25033d110c4f826290b0c5b60fe28751a
 		userConnectEventHandler(message, accessor, nativeHeaders, credentials);
 		accessor.setUser(credentials);
 		saveOrUpdateUserInDatabase(credentials);

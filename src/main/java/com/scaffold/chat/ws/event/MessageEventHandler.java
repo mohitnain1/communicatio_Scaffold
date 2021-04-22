@@ -8,6 +8,7 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 
 import com.scaffold.chat.model.ChatPayload;
 import com.scaffold.chat.repository.UsersDetailRepository;
+import com.scaffold.security.domains.UserCredentials;
 
 public class MessageEventHandler extends WebSocketChannelInterceptor {
 	
@@ -23,6 +24,7 @@ public class MessageEventHandler extends WebSocketChannelInterceptor {
 	protected void onMessage(Message<?> message, StompHeaderAccessor accessor) {
 		ChatPayload messagePayload = (ChatPayload)converter.fromMessage(message, ChatPayload.class);
 		messagePayload.setMessageDestination(accessor.getDestination());
+		
 		log.info("Got Message {}", messagePayload.toString());
 	}
 

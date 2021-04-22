@@ -11,6 +11,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import com.scaffold.chat.model.ChatRoom;
@@ -21,6 +22,7 @@ import com.scaffold.chat.repository.ChatRoomRepository;
 import com.scaffold.chat.repository.MessageStoreRepository;
 import com.scaffold.chat.repository.UsersDetailRepository;
 import com.scaffold.chat.service.ChatRoomService;
+import com.scaffold.chat.web.UrlConstants;
 
 @Service
 public class ChatRoomServiceImpl implements ChatRoomService {
@@ -29,6 +31,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	@Autowired public ChatRoomRepository chatRoomRepository;
 	@Autowired public MessageStoreRepository messageStoreRepository;
 	@Autowired UsersDetailRepository userDetailsRepository;
+	@Autowired SimpMessagingTemplate simpMessagingTemplate;
 
 	@Override
 	public HashMap<String, Object> createChatRoom(String chatRoomName, long chatRoomCreatorId, List<Long> chatRoomMembersId) {
@@ -36,7 +39,19 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		HashMap<String, Object> response = new HashMap<>();
 		response.put("chatRoomId", chatRoom.getChatRoomId());
 		response.put("accessKey", chatRoom.getRoomAccessKey());
+		sendInviteToUsers(chatRoom.getRoomAccessKey(), chatRoom.getChatRoomId(), chatRoomMembersId);
 		return response;
+	}
+
+	private void sendInviteToUsers(byte[] roomAccessKey, String chatRoomId, List<Long> chatRoomMembersId) {
+		HashMap<String, Object> response = new HashMap<>();
+		response.put("chatRoomId", chatRoomId);
+		response.put("accessKey", roomAccessKey);
+		System.out.println(chatRoomMembersId.toString());
+		chatRoomMembersId.forEach(member -> {
+			System.out.println("/topic/"+member.toString()+"/invitations" + "-----------");
+			simpMessagingTemplate.convertAndSend("/topic/"+member.toString()+"/invitations" ,response);
+		});
 	}
 
 	private ChatRoom mapChatRoomCreationDetails(String chatRoomName, long chatRoomCreatorId,
@@ -117,6 +132,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		chatRoom.setChatRoomMembersId(savedMemebersId);
 		ChatRoom allMembersId = chatRoomRepository.save(chatRoom);
 		addSubscribedChatRoomToUser(savedMemebersId, chatRoomId);
+		sendInviteToUsers(allMembersId.getRoomAccessKey(), chatRoomId, newMemebersId);
 		LOGGER.info("Members added successfully....");
 		return allMembersId.getChatRoomMembersId();
 	}
