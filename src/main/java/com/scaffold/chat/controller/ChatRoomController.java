@@ -1,5 +1,6 @@
 package com.scaffold.chat.controller;
 
+import java.util.HashMap;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,19 +25,11 @@ public class ChatRoomController {
 	
 	@Autowired public ChatRoomService chatRoomServices;
 	
-	//chatRoom creation....
-	//@ApiOperation(value = "Create chatroom", notes = "This api is used to create chatroom.")
 	@PostMapping(value = "/chatRoom")
-	@ResponseStatus(HttpStatus.CREATED)
 	public ResponseEntity<Object> createChatRoom(@RequestParam String chatRoomName, 
 			@RequestParam long creatorId, @RequestParam List<Long> membersId ) {
-		try {
-			String chatRoomId = chatRoomServices.createChatRoom(chatRoomName, creatorId, membersId);
-			return new ResponseEntity<>(chatRoomId, HttpStatus.CREATED);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new ResponseEntity<>(chatRoomName +" Chatroom not created...", HttpStatus.INTERNAL_SERVER_ERROR);
-		}
+		HashMap<String, Object> chatRoomId = chatRoomServices.createChatRoom(chatRoomName, creatorId, membersId);
+		return new ResponseEntity<>(chatRoomId, HttpStatus.CREATED);
 	}
 	
 	//Add members in chatRoom....

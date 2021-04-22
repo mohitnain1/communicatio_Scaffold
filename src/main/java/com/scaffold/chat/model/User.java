@@ -2,6 +2,7 @@ package com.scaffold.chat.model;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -15,6 +16,15 @@ public class User implements Principal {
 	private String userType;
 	private String userProfilePicture;
 	private LocalDateTime userLastSeen;
+	List<String> chatRoomIds;
+
+	public List<String> getChatRoomIds() {
+		return chatRoomIds;
+	}
+
+	public void setChatRoomIds(List<String> chatRoomIds) {
+		this.chatRoomIds = chatRoomIds;
+	}
 
 	public String getId() {
 		return id;

@@ -1,5 +1,6 @@
 package com.scaffold.chat.ws.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -7,11 +8,14 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
-import com.scaffold.chat.ws.event.WebSocketChannelInterceptor;
+import com.scaffold.chat.repository.UsersDetailRepository;
+import com.scaffold.chat.ws.event.MessageEventHandler;
 
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
+	
+	@Autowired UsersDetailRepository repository;
 	
 	@Override
 	public void registerStompEndpoints(StompEndpointRegistry registry) {
@@ -20,13 +24,12 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
 	
 	@Override
 	public void configureMessageBroker(MessageBrokerRegistry registry) {
-		registry.enableSimpleBroker("/topic", "/user");
-		registry.setApplicationDestinationPrefixes("/chat");
+		registry.enableSimpleBroker("/topic", "/queue");
+		registry.setApplicationDestinationPrefixes("/app");
 	}	
-		
+
 	@Override
 	public void configureClientInboundChannel(ChannelRegistration registration) {
-		registration.interceptors(new WebSocketChannelInterceptor());
+		registration.interceptors(new MessageEventHandler(repository));
 	}
-	
 }
