@@ -4,6 +4,19 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class UserSessionRepo {
+	
+	private static UserSessionRepo INSTANCE;
+    
+    private UserSessionRepo() {        
+    }
+    
+    public static UserSessionRepo getInstance() {
+        if(INSTANCE == null) {
+            INSTANCE = new UserSessionRepo();
+        }
+        
+        return INSTANCE;
+    }
 
 	private Map<String, UserEvent> activeSessions = new ConcurrentHashMap<>();
 
