@@ -9,17 +9,13 @@ public class Message {
 	private LocalDateTime messageSendingTime;
 	private String messageDestination;
 	
-	
-	
 	public Message(long messageSenderId, String messsageContent) {
 		this.messageSenderId = messageSenderId;
 		this.messsageContent = messsageContent;
 	}
 	
-	
 	public Message() {
 	}
-
 
 	public long getMessageSenderId() {
 		return messageSenderId;
