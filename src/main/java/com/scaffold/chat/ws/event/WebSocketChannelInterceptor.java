@@ -72,8 +72,9 @@ public abstract class WebSocketChannelInterceptor implements ChannelInterceptor 
 	private void userConnectEventHandler(Message<?> message, StompHeaderAccessor accessor,
 			MultiValueMap<String, String> nativeHeaders, UserCredentials credentials) {
 		String sessionId = (String) message.getHeaders().get(StompHeaderAccessor.SESSION_ID_HEADER);
-		UserEvent loginEvent = new UserEvent(credentials.getUserId(), credentials.getUsername(), sessionId);
-		userSessions.add(sessionId, loginEvent);
+		UserEvent login = new UserEvent(credentials.getUserId(), credentials.getUsername(), sessionId);
+		userSessions.add(sessionId, login);
+		log.info("The user connected {}", login);
 	}
 	
 	private void handleSessionDisconnect(Message<?> message, StompHeaderAccessor accessor) {

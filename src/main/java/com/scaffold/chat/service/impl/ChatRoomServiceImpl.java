@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -22,7 +23,6 @@ import com.scaffold.chat.repository.ChatRoomRepository;
 import com.scaffold.chat.repository.MessageStoreRepository;
 import com.scaffold.chat.repository.UsersDetailRepository;
 import com.scaffold.chat.service.ChatRoomService;
-import com.scaffold.chat.web.UrlConstants;
 
 @Service
 public class ChatRoomServiceImpl implements ChatRoomService {
@@ -30,8 +30,8 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 
 	@Autowired public ChatRoomRepository chatRoomRepository;
 	@Autowired public MessageStoreRepository messageStoreRepository;
-	@Autowired UsersDetailRepository userDetailsRepository;
-	@Autowired SimpMessagingTemplate simpMessagingTemplate;
+	@Autowired public  UsersDetailRepository userDetailsRepository;
+	@Autowired public SimpMessagingTemplate simpMessagingTemplate;
 
 	@Override
 	public HashMap<String, Object> createChatRoom(String chatRoomName, long chatRoomCreatorId, List<Long> chatRoomMembersId) {
@@ -123,10 +123,6 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		return messageDetail;
 	}
 
-	public List<Message> getMessages(String chatRoomId) {
-		return chatRoomRepository.findByChatRoomId(chatRoomId).getMessageStore().getMessageDetails();
-	}
-
 	@Override
 	public List<Long> addMembers(String chatRoomId, List<Long> newMemebersId) {
 		ChatRoom chatRoom = chatRoomRepository.findByChatRoomId(chatRoomId);
@@ -162,5 +158,11 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		javax.crypto.KeyGenerator generator = javax.crypto.KeyGenerator.getInstance("HMACSHA1");
 		generator.init(120);
 		return generator.generateKey().getEncoded();
+	}
+
+	@Override
+	public HashMap<String, Object> getAllChatRoomOfUser(long userId) {
+		
+		return null;
 	}
 }
