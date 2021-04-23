@@ -6,7 +6,14 @@ public class ChatPayload {
 	private String messsageContent;
 	private long messageSendingTime;
 	private String destination;
+	private String username;
 	
+	public String getUsername() {
+		return username;
+	}
+	public void setUsername(String username) {
+		this.username = username;
+	}
 	public long getMessageSenderId() {
 		return messageSenderId;
 	}

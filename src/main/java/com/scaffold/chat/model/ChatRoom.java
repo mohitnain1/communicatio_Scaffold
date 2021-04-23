@@ -17,6 +17,8 @@ public class ChatRoom {
 	private LocalDateTime chatRoomCreationDate;
 	private LocalDateTime chatRoomLastConversationDate;
 	
+	private byte[] roomAccessKey;
+	
 	private long chatRoomCreatorId;
 	private List<Long> chatRoomMembersId;
 	
@@ -102,5 +104,12 @@ public class ChatRoom {
 	public void setMessageStore(MessageStore messageStore) {
 		this.messageStore = messageStore;
 	}
-	
+
+	public byte[] getRoomAccessKey() {
+		return roomAccessKey;
+	}
+
+	public void setRoomAccessKey(byte[] bs) {
+		this.roomAccessKey = bs;
+	}
 }

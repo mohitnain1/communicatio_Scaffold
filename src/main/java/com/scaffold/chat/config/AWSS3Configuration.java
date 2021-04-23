@@ -1,7 +1,6 @@
-package com.scaffold.chat.configuration;
+package com.scaffold.chat.config;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -11,7 +10,6 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
-@ConditionalOnProperty(name = "scaffold.aws.s3.enabled", havingValue = "true")
 @Configuration
 public class AWSS3Configuration {
 	
