@@ -75,9 +75,13 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	private void addSubscribedChatRoomToUser(List<Long> chatRoomMembersId, String chatRoomId) {
 		chatRoomMembersId.stream().forEach(userId -> {
 			userDetailsRepository.findByUserId(userId).ifPresent(user -> {
-				List<String> chatRooms = user.getChatRoomIds();
-				chatRooms.add(chatRoomId);
-				user.setChatRoomIds(chatRooms);
+				try {
+					List<String> chatRooms = user.getChatRoomIds();
+					chatRooms.add(chatRoomId);
+					user.setChatRoomIds(chatRooms);
+				} catch (NullPointerException e) {
+					user.setChatRoomIds(Arrays.asList(chatRoomId));
+				}
 				userDetailsRepository.save(user);
 			});
 		});
