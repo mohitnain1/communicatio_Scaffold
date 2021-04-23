@@ -35,8 +35,8 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 
 	@Autowired public ChatRoomRepository chatRoomRepository;
 	@Autowired public MessageStoreRepository messageStoreRepository;
-	@Autowired UsersDetailRepository userDetailsRepository;
-	@Autowired SimpMessagingTemplate simpMessagingTemplate;
+	@Autowired public  UsersDetailRepository userDetailsRepository;
+	@Autowired public SimpMessagingTemplate simpMessagingTemplate;
 
 	@Override
 	public HashMap<String, Object> createChatRoom(String chatRoomName, long chatRoomCreatorId, List<Long> chatRoomMembersId) {
@@ -121,10 +121,6 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		messageDetail.setMessageSendingTime(LocalDateTime.now());
 		messageDetail.setMesssageContent("Hello everyone!!");
 		return messageDetail;
-	}
-
-	public List<Message> getMessages(String chatRoomId) {
-		return chatRoomRepository.findByChatRoomId(chatRoomId).getMessageStore().getMessageDetails();
 	}
 
 	@Override

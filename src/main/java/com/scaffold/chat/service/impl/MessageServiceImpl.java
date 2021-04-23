@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,8 +20,6 @@ import com.scaffold.chat.service.MessageService;
 
 @Service
 public class MessageServiceImpl implements MessageService {
-	private static final Logger LOGGER = LoggerFactory.getLogger(MessageServiceImpl.class);
-
 	@Autowired public ChatRoomRepository chatRoomRepository;
 	@Autowired public MessageStoreRepository messageStoreRepository;
 	@Autowired private UsersDetailRepository userDetailsRepo;
