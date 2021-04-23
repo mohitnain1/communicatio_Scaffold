@@ -7,6 +7,9 @@ import java.util.Set;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+
+import com.scaffold.security.jwt.JwtUtil;
+
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.service.Contact;
 import springfox.documentation.spi.DocumentationType;
@@ -40,5 +43,10 @@ public class CommunicationScaffoldChatApp {
 	     .apiInfo(DEFAULT_API_INFO)
 	     .produces(DEFAULT_PRODUCES_AND_CONSUMES)
 	     .consumes(DEFAULT_PRODUCES_AND_CONSUMES);
+	}
+	
+	@Bean
+	public JwtUtil jwtUtil() {
+		return new JwtUtil();
 	}
 }

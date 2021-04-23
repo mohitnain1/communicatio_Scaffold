@@ -1,8 +1,8 @@
 package com.scaffold.chat.ws.event;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -29,7 +29,7 @@ public abstract class WebSocketChannelInterceptor implements ChannelInterceptor 
 	private UsersDetailRepository userDetailsRepository;
 	
 	public WebSocketChannelInterceptor(UsersDetailRepository usersDetailRepository) {
-		userDetailsRepository = usersDetailRepository;
+		this.userDetailsRepository = usersDetailRepository;
 	}
 	
 	@Override
@@ -58,29 +58,34 @@ public abstract class WebSocketChannelInterceptor implements ChannelInterceptor 
 	}
 	
 	private void saveOrUpdateUserInDatabase(UserCredentials credentials) {
-		userDetailsRepository.findByUserId(credentials.getUserId()).orElseGet(() -> {
-			User user = new User();
-			user.setUserId(credentials.getUserId());
-			user.setUsername(credentials.getUsername());
+		User user = userDetailsRepository.findByUserId(credentials.getUserId());
+		if(Objects.nonNull(user)) {
 			user.setUserProfilePicture(credentials.getImageLink());
-			user.setUserLastSeen(LocalDateTime.now());
+			user.setUsername(credentials.getUsername());
+			userDetailsRepository.save(user);
+		} else {
+			User newUser = new User();
+			newUser.setUserId(credentials.getUserId());
+			newUser.setUsername(credentials.getUsername());
+			newUser.setUserProfilePicture(credentials.getImageLink());
+			newUser.setUserLastSeen(LocalDateTime.now());
 			log.info("Saved new User");
-			return userDetailsRepository.save(user);
-		});
+			userDetailsRepository.save(newUser);
+		}
 	}
 
 	private void userConnectEventHandler(Message<?> message, StompHeaderAccessor accessor,
 			MultiValueMap<String, String> nativeHeaders, UserCredentials credentials) {
 		String sessionId = (String) message.getHeaders().get(StompHeaderAccessor.SESSION_ID_HEADER);
-		UserEvent loginEvent = new UserEvent(credentials.getUserId(), credentials.getUsername(), sessionId);
-		userSessions.add(sessionId, loginEvent);
+		UserEvent login = new UserEvent(credentials.getUserId(), credentials.getUsername(), sessionId);
+		userSessions.add(sessionId, login);
+		log.info("The user connected {}", login);
 	}
 	
 	private void handleSessionDisconnect(Message<?> message, StompHeaderAccessor accessor) {
 		String sessionId = (String) message.getHeaders().get(StompHeaderAccessor.SESSION_ID_HEADER);
-		UserSessionRepo userSessions= UserSessionRepo.getInstance();
 		UserEvent logout = userSessions.getParticipant(sessionId);
-		logout.setTime(new Date());
+		logout.setTime(System.currentTimeMillis());
 		userSessions.removeParticipant(sessionId);
 		log.info("The user disconnected {}", logout);
 	}

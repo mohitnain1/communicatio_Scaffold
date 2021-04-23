@@ -1,12 +1,14 @@
 package com.scaffold.chat.service.impl;
 
-import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,16 +24,19 @@ import com.scaffold.chat.repository.ChatRoomRepository;
 import com.scaffold.chat.repository.MessageStoreRepository;
 import com.scaffold.chat.repository.UsersDetailRepository;
 import com.scaffold.chat.service.ChatRoomService;
-import com.scaffold.chat.web.UrlConstants;
+import com.scaffold.security.jwt.JwtUtil;
 
 @Service
 public class ChatRoomServiceImpl implements ChatRoomService {
+	
+	@Autowired JwtUtil jwtUtil;
+	
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChatRoomServiceImpl.class);
 
 	@Autowired public ChatRoomRepository chatRoomRepository;
 	@Autowired public MessageStoreRepository messageStoreRepository;
-	@Autowired UsersDetailRepository userDetailsRepository;
-	@Autowired SimpMessagingTemplate simpMessagingTemplate;
+	@Autowired public  UsersDetailRepository userDetailsRepository;
+	@Autowired public SimpMessagingTemplate simpMessagingTemplate;
 
 	@Override
 	public HashMap<String, Object> createChatRoom(String chatRoomName, long chatRoomCreatorId, List<Long> chatRoomMembersId) {
@@ -43,13 +48,12 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		return response;
 	}
 
-	private void sendInviteToUsers(byte[] roomAccessKey, String chatRoomId, List<Long> chatRoomMembersId) {
+	private void sendInviteToUsers(String roomAccessKey, String chatRoomId, List<Long> chatRoomMembersId) {
 		HashMap<String, Object> response = new HashMap<>();
 		response.put("chatRoomId", chatRoomId);
 		response.put("accessKey", roomAccessKey);
 		System.out.println(chatRoomMembersId.toString());
 		chatRoomMembersId.forEach(member -> {
-			System.out.println("/topic/"+member.toString()+"/invitations" + "-----------");
 			simpMessagingTemplate.convertAndSend("/topic/"+member.toString()+"/invitations" ,response);
 		});
 	}
@@ -62,11 +66,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		chatRoom.setChatRoomLastConversationDate(LocalDateTime.now());
 		chatRoom.setChatRoomId(createChatRoomId());
 		chatRoom.setMessageStore(generateMessageStore(chatRoom.getChatRoomId()));
-		try {
-			chatRoom.setRoomAccessKey(generateChatRoomAccessKey());
-		} catch (NoSuchAlgorithmException e) {
-			chatRoom.setRoomAccessKey(UUID.randomUUID().toString().substring(0, 12).getBytes());
-		}
+		chatRoom.setRoomAccessKey(jwtUtil.generateToken(chatRoom.getChatRoomId()));
 		chatRoom = chatRoomRepository.save(chatRoom);
 		chatRoomMembersId.add(chatRoomCreatorId);
 		addSubscribedChatRoomToUser(chatRoomMembersId, chatRoom.getChatRoomId());
@@ -123,10 +123,6 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		return messageDetail;
 	}
 
-	public List<Message> getMessages(String chatRoomId) {
-		return chatRoomRepository.findByChatRoomId(chatRoomId).getMessageStore().getMessageDetails();
-	}
-
 	@Override
 	public List<Long> addMembers(String chatRoomId, List<Long> newMemebersId) {
 		ChatRoom chatRoom = chatRoomRepository.findByChatRoomId(chatRoomId);
@@ -154,13 +150,22 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	}
 
 	@Override
-	public List<String> getUserChatRooms(long userId) {
-		return userDetailsRepository.findByUserId(userId).map(User::getChatRoomIds).orElseGet(ArrayList::new);
-	}
-	
-	protected byte[] generateChatRoomAccessKey() throws NoSuchAlgorithmException {
-		javax.crypto.KeyGenerator generator = javax.crypto.KeyGenerator.getInstance("HMACSHA1");
-		generator.init(120);
-		return generator.generateKey().getEncoded();
+	public List<Map<String, Object>> userChatRooms(long userId) {
+		User user = userDetailsRepository.findByUserId(userId);
+		if(Objects.nonNull(user)) {
+			List<String> chatRoomIds = user.getChatRoomIds();
+			if(Objects.nonNull(chatRoomIds) && !chatRoomIds.isEmpty()) {
+				return chatRoomIds.stream().map(roomId -> {
+					ChatRoom chatRoom = chatRoomRepository.findByChatRoomId(roomId);
+					HashMap<String, Object> roomDetails = new HashMap<>();
+					roomDetails.put("chatRoomId", roomId);
+					roomDetails.put("accessKey", chatRoom.getRoomAccessKey());
+					return roomDetails;
+				}).collect(Collectors.toList());
+			} else {
+				return new ArrayList<>();
+			}
+		}
+		return null;
 	}
 }
