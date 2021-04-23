@@ -2,6 +2,7 @@ package com.scaffold.chat.service;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
@@ -14,5 +15,6 @@ public interface ChatRoomService {
 	
 	public List<Long> removeMembers(String chatRoomId, List<Long> chatRoomMemebersId);
 	
-	public List<String> getUserChatRooms(long userId);
+	public List<Map<String, Object>> userChatRooms(long userId);
+	
 }
