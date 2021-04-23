@@ -12,9 +12,7 @@ public interface ChatRoomService {
 	public HashMap<String, Object> createChatRoom(String chatRoomName, long chatRoomCreatorId, List<Long> chatRoomMembersId);
 	
 	public List<Long> addMembers(String chatRoomId, List<Long> chatRoomMemebersId);
-	
-	public List<Long> removeMembers(String chatRoomId, List<Long> chatRoomMemebersId);
-	
+		
 	public List<Map<String, Object>> userChatRooms(long userId);
 	
 }
