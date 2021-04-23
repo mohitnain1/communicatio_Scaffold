@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -161,7 +162,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 
 	@Override
 	public HashMap<String, Object> getAllChatRoomOfUser(long userId) {
-		userDetailsRepository.findByUserId(userId);
+		
 		return null;
 	}
 }
