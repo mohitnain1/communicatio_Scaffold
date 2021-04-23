@@ -9,7 +9,6 @@ import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -20,6 +19,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.scaffold.chat.datatransfer.ChatRoomCreationParams;
+import com.scaffold.chat.datatransfer.ChatRoomUpdateParams;
 import com.scaffold.chat.service.ChatRoomService;
 import com.scaffold.chat.web.UrlConstants;
 
@@ -42,29 +42,16 @@ public class ChatRoomController {
 	//Add members in chatRoom....
 	@PutMapping(value = "/members")
 	@ResponseStatus(HttpStatus.OK)
-	public ResponseEntity<Object> addMembers(@RequestParam String chatRoomId,@RequestParam List<Long> membersId ) {
+	public ResponseEntity<Object> addMembers(@RequestBody ChatRoomUpdateParams params) {
 		try {
-			List<Long> addMembersId = chatRoomServices.addMembers(chatRoomId, membersId);
+			List<Long> addMembersId = chatRoomServices.addMembers(params.getChatRoomId(), params.getMembersId());
 			return new ResponseEntity<>(addMembersId, HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new ResponseEntity<>(membersId+" membersId not added in chatRoom", HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(params.getMembersId()+" membersId not added in chatRoom", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-	
-	//Remove members with chatRoom....
-	@DeleteMapping(value = "/members")
-	@ResponseStatus(HttpStatus.OK)
-	public ResponseEntity<Object> removeMembers(@RequestParam String chatRoomId,@RequestParam List<Long> membersId) {
-		try {
-			List<Long> removedMembersId = chatRoomServices.removeMembers(chatRoomId, membersId);
-			return new ResponseEntity<>(removedMembersId, HttpStatus.OK);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new ResponseEntity<>(membersId+" membersId not deleted with chatRoom", HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
-	
+		
 	@GetMapping(UrlConstants.GET_USER_ROOM)
 	public ResponseEntity<Object> getUserChatRooms(@RequestParam long userId) {
 		List<Map<String, Object>> userChatRooms = chatRoomServices.userChatRooms(userId);

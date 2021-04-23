@@ -136,18 +136,6 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		LOGGER.info("Members added successfully....");
 		return allMembersId.getChatRoomMembersId();
 	}
-	
-	@Override
-	public List<Long> removeMembers(String chatRoomId, List<Long> removeMemebersId) {
-		ChatRoom chatRoom = chatRoomRepository.findByChatRoomId(chatRoomId);
-		List<Long> savedMemebersId = chatRoom.getChatRoomMembersId();
-		savedMemebersId.removeAll(removeMemebersId);
-		chatRoom.setChatRoomMembersId(savedMemebersId);
-		ChatRoom allMembersId = chatRoomRepository.save(chatRoom);
-		removeChatRoomFromUser(savedMemebersId, chatRoomId);
-		LOGGER.info("Members removed successfully....");
-		return allMembersId.getChatRoomMembersId();
-	}
 
 	@Override
 	public List<Map<String, Object>> userChatRooms(long userId) {
