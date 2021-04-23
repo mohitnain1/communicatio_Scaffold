@@ -1,19 +1,18 @@
 package com.scaffold.security.domains;
 
 import java.security.Principal;
-import java.util.Date;
 
 public class UserEvent implements Principal {
 	private long userId;
 	private String username;
 	private String sessionId;
-	private Date time;
+	private long time;
 	
 	public UserEvent(long userId, String username, String sessionId) {
 		this.userId = userId;
 		this.username = username;
 		this.sessionId= sessionId;
-		time = new Date();
+		time = System.currentTimeMillis();
 	}
 
 	public long getUserId() {
@@ -32,11 +31,11 @@ public class UserEvent implements Principal {
 		this.username = username;
 	}
 
-	public Date getTime() {
+	public long getTime() {
 		return time;
 	}
 
-	public void setTime(Date time) {
+	public void setTime(long time) {
 		this.time = time;
 	}
 	
