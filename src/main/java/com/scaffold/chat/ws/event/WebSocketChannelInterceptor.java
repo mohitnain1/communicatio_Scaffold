@@ -51,7 +51,7 @@ public abstract class WebSocketChannelInterceptor implements ChannelInterceptor 
 				MultiValueMap.class);
 		List<String> userData = nativeHeaders.get("userId");
 		List<Long> getUserId = userData.stream().map(Long::parseLong).collect(Collectors.toList());
-		UserCredentials credentials = new UserCredentials(getUserId.get(0), nativeHeaders.get("imageLink").toString(), nativeHeaders.get("username").toString());
+		UserCredentials credentials = new UserCredentials(getUserId.get(0), nativeHeaders.get("imageLink").get(0), nativeHeaders.get("username").get(0));
 		userConnectEventHandler(message, accessor, nativeHeaders, credentials);
 		accessor.setUser(credentials);
 		saveOrUpdateUserInDatabase(credentials);
