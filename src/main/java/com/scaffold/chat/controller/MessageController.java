@@ -2,6 +2,7 @@ package com.scaffold.chat.controller;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.scaffold.chat.repository.MessageStoreRepository;
 import com.scaffold.chat.service.ChatRoomService;
 import com.scaffold.chat.service.MessageService;
+import com.scaffold.web.util.Response;
 
 @RestController
 @RequestMapping("/chat")
@@ -26,10 +28,12 @@ public class MessageController {
 	@GetMapping(value = "/messages")
 	public ResponseEntity<Object> getAllMessages(@RequestParam String chatRoomId, @RequestParam String accessKey) {
 		List<Map<String, Object>> message = messageService.getAllMessages(chatRoomId, accessKey);
-		if(!message.isEmpty()) {
-			return new ResponseEntity<Object>(message, HttpStatus.OK);
+		if(Objects.isNull(message)) {
+			return Response.generateResponse(HttpStatus.OK, null, "Invalid Chatroom Id", false);
+		} else if(message.isEmpty()) {
+			return Response.generateResponse(HttpStatus.OK, null, "Invalid Access key", false);
 		} else {
-			return new ResponseEntity<Object>("Invalid Access Key", HttpStatus.UNAUTHORIZED);
+			return Response.generateResponse(HttpStatus.OK, message, "Successful", true);
 		}
 	}
 	

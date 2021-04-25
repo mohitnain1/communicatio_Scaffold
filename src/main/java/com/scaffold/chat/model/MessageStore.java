@@ -41,6 +41,10 @@ public class MessageStore {
 	public void setMessageDetails(List<Message> messageDetails) {
 		this.messageDetails = messageDetails;
 	}
+	
+	public void addMessage(Message message) {
+		this.messageDetails.add(message);
+	}
 
 	@Override
 	public String toString() {
