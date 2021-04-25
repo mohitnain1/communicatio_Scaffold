@@ -1,9 +1,6 @@
 package com.scaffold.chat.ws.event;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
-import java.util.List;
+import java.sql.Timestamp;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,11 +20,20 @@ public class MessageEventHandler extends WebSocketChannelInterceptor {
 	private static final Logger log = LoggerFactory.getLogger(MessageEventHandler.class);
 	private final MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
 
+	
 	public MessageEventHandler(UsersDetailRepository usersDetailRepository, MessageStoreRepository messageStoreRepository) {
 		super(usersDetailRepository);
 		this.messageStoreRepository=messageStoreRepository;
 	}
 
+	/**
+	 * Get called by {@linkplain WebSocketChannelInterceptor} 
+	 * whenever any user sends message at any destination. It
+	 * parse the message and saves the record in the database.
+	 * 
+	 * @param message The WebSocket Message model
+	 * @param accessor The Stomp Header accessor.
+	 */
 	@Override
 	protected void onMessage(Message<?> message, StompHeaderAccessor accessor) {
 		ChatPayload messagePayload = (ChatPayload)converter.fromMessage(message, ChatPayload.class);
@@ -36,22 +42,36 @@ public class MessageEventHandler extends WebSocketChannelInterceptor {
 		log.info("Got Message {}", messagePayload.toString());
 	}
 	
+	/**
+	 * This method gets called whenever user sends any message
+	 * to any destination by {@link #onMessage(Message, StompHeaderAccessor)}
+	 * and it saves parse the payload and create a message and
+	 * saves the record in the database.
+	 * 
+	 * @param messagePayload Casted Message payload from request.
+	 */
 	public void saveUserMessageInDatabase(ChatPayload messagePayload) {
 		String messageDestination = messagePayload.getMessageDestination();
 		String chatRoomId =messageDestination.substring(messageDestination.indexOf(".")+1);
-		Date date = new Date(messagePayload.getMessageSendingTime());
-		LocalDateTime messageSendingTime = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
 		MessageStore messageStore = messageStoreRepository.findByChatRoomId(chatRoomId);
-		List<com.scaffold.chat.model.Message> messageData = messageStore.getMessageDetails();
-		
+		messageStore.addMessage(getMessageData(messagePayload));
+		messageStoreRepository.save(messageStore);	
+	}
+
+	/**
+	 * <p>Get called on every message request. Parse the message 
+	 * in {@linkplain ChatPayload} and this method cast the payload
+	 * into a message representation in database.</p>
+	 * 
+	 * @param messagePayload The payload representation received in request.
+	 * @return {@linkplain com.scaffold.chat.model.Message}.
+	 */
+	private com.scaffold.chat.model.Message getMessageData(ChatPayload messagePayload) {
 		com.scaffold.chat.model.Message messageDetail = new com.scaffold.chat.model.Message();
 		messageDetail.setMessageDestination(messagePayload.getMessageDestination());
 		messageDetail.setMessageSenderId(messagePayload.getMessageSenderId());
 		messageDetail.setMesssageContent(messagePayload.getMesssageContent());
-		messageDetail.setMessageSendingTime(messageSendingTime);
-
-		messageData.add(messageDetail);
-		messageStore.setMessageDetails(messageData);
-		messageStoreRepository.save(messageStore);	
+		messageDetail.setMessageSendingTime(new Timestamp(messagePayload.getMessageSendingTime()).toLocalDateTime());
+		return messageDetail;
 	}
 }

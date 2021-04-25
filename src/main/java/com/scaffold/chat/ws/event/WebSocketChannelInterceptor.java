@@ -2,7 +2,7 @@ package com.scaffold.chat.ws.event;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -58,12 +58,13 @@ public abstract class WebSocketChannelInterceptor implements ChannelInterceptor 
 	}
 	
 	private void saveOrUpdateUserInDatabase(UserCredentials credentials) {
-		User user = userDetailsRepository.findByUserId(credentials.getUserId());
-		if(Objects.nonNull(user)) {
-			user.setUserProfilePicture(credentials.getImageLink());
-			user.setUsername(credentials.getUsername());
-			userDetailsRepository.save(user);
-		} else {
+		Optional<User> user = userDetailsRepository.findByUserId(credentials.getUserId());
+		if(user.isPresent()) {
+			user.get().setUserProfilePicture(credentials.getImageLink());
+			user.get().setUsername(credentials.getUsername());
+			userDetailsRepository.save(user.get());
+		}
+		else {
 			User newUser = new User();
 			newUser.setUserId(credentials.getUserId());
 			newUser.setUsername(credentials.getUsername());
