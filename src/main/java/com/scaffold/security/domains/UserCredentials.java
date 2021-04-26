@@ -2,6 +2,9 @@ package com.scaffold.security.domains;
 
 import java.security.Principal;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UserCredentials implements Principal {
 
 	private long userId;
@@ -41,6 +44,12 @@ public class UserCredentials implements Principal {
 	@Override
 	public String getName() {
 		return this.username;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		UserCredentials cred = (UserCredentials) obj;
+		return this.userId == cred.getUserId();
 	}
 
 	@Override
