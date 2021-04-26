@@ -10,6 +10,9 @@ public class UserCredentials implements Principal {
 	private long userId;
 	private String imageLink;
 	private String username;
+	private boolean creator;
+
+
 
 	public UserCredentials(long userId, String imageLink, String username) {
 		this.userId = userId;
@@ -40,6 +43,15 @@ public class UserCredentials implements Principal {
 	public void setUsername(String username) {
 		this.username = username;
 	}
+	
+	
+	public boolean isCreator() {
+		return creator;
+	}
+
+	public void setCreator(boolean creator) {
+		this.creator = creator;
+	}
 
 	@Override
 	public String getName() {
@@ -51,6 +63,9 @@ public class UserCredentials implements Principal {
 		UserCredentials cred = (UserCredentials) obj;
 		return this.userId == cred.getUserId();
 	}
+	
+
+	
 
 	@Override
 	public String toString() {

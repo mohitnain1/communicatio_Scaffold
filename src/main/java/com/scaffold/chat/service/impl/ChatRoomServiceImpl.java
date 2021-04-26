@@ -37,14 +37,16 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 
 	@Autowired public ChatRoomRepository chatRoomRepository;
 	@Autowired public MessageStoreRepository messageStoreRepository;
-	@Autowired public  UsersDetailRepository userDetailsRepository;
+	@Autowired public UsersDetailRepository userDetailsRepository;
 	@Autowired public SimpMessagingTemplate simpMessagingTemplate;
 	@Autowired private ObjectMapper mapper;
 
 	@Override
 	public ChatRoomResponse createChatRoom(String chatRoomName, UserCredentials chatRoomCreator, List<UserCredentials> chatRoomMembers) {
-		saveOrUpdateUsers(chatRoomMembers);
-		saveOrUpdateUsers(Arrays.asList(chatRoomCreator));
+	
+		chatRoomCreator.setCreator(true);
+		saveOrUpdateUsers(chatRoomMembers, chatRoomCreator);
+		//saveOrUpdateUsers(Arrays.asList(chatRoomCreator));
 		
 		List<Long> chatRoomMembersId = chatRoomMembers.stream().map(UserCredentials::getUserId).collect(Collectors.toList());
 		
@@ -137,7 +139,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	public List<UserCredentials> addMembers(String chatRoomId, List<UserCredentials> members) {
 		return chatRoomRepository.findByChatRoomId(chatRoomId).map(chatRoom -> {
 			List<Long> savedMemebersId = chatRoom.getChatRoomMembersId();
-			saveOrUpdateUsers(members);
+			saveOrUpdateUsers(members, null);
 			List<Long> newMembersId = members.stream().map(UserCredentials::getUserId).collect(Collectors.toList());
 			
 			savedMemebersId.addAll(newMembersId);
@@ -155,11 +157,13 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 			User user = userDetailsRepository.findByUserId(userId.longValue());
 			UserCredentials credentials = mapper.convertValue(user, UserCredentials.class);
 			credentials.setImageLink(user.getUserProfilePicture());
+		//	credentials.setCreator(true);
 			return credentials;
 		}).collect(Collectors.toList());
 	}
 
-	private void saveOrUpdateUsers(List<UserCredentials> members) {
+	private void saveOrUpdateUsers(List<UserCredentials> members, UserCredentials chatRoomCreator ) {
+		members.add(chatRoomCreator);
 		members.stream().forEach(credentials -> {
 			User user = userDetailsRepository.findByUserId(credentials.getUserId());
 			if(Objects.nonNull(user)) {
