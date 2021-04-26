@@ -1,6 +1,8 @@
 package com.scaffold.chat.controller;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -49,8 +51,11 @@ public class ChatRoomController {
 	@GetMapping(UrlConstants.GET_USER_ROOM)
 	public ResponseEntity<Object> getUserChatRooms(@RequestParam long userId) {
 		List<ChatRoomResponse> userChatRooms = chatRoomServices.userChatRooms(userId);
-		if(userChatRooms.isEmpty()) {
-			return Response.generateResponse(HttpStatus.OK, null, "No Chatroom found", false);
+		if(Objects.isNull(userChatRooms)) {
+			return Response.generateResponse(HttpStatus.OK, Collections.emptyList(), "No Chatroom Found", false);
+		}
+		else if(userChatRooms.isEmpty()) {
+			return Response.generateResponse(HttpStatus.OK, Collections.emptyList(), "No Chatroom found", false);
 		} else {
 			return Response.generateResponse(HttpStatus.OK, userChatRooms, "Successful", true);
 		}
