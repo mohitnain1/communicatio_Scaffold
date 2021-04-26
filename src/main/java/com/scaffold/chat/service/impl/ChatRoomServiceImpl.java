@@ -184,8 +184,9 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		User user = userDetailsRepository.findByUserId(userId);
 		if(Objects.nonNull(user)) {
 			//Removing duplicate chat-rooms from list.
-			List<String> userChatRooms = user.getChatRoomIds().stream().distinct().collect(Collectors.toList());
+			List<String> userChatRooms = user.getChatRoomIds();
 			if(Objects.nonNull(userChatRooms) && !userChatRooms.isEmpty()) {
+				userChatRooms = userChatRooms.stream().distinct().collect(Collectors.toList());
 				return mapUserChatRoomResponse(userChatRooms);
 			} else {
 				return new ArrayList<ChatRoomResponse>();
