@@ -12,7 +12,8 @@ public class ChatRoomResponse {
 	private String chatRoomName;
 	private String roomAccessKey;
 	private List<UserCredentials> members;
-	private UserCredentials chatRoomCreator;
+	private UserCredentials creator;
+	
 	public String getChatRoomId() {
 		return chatRoomId;
 	}
@@ -37,10 +38,11 @@ public class ChatRoomResponse {
 	public void setMembers(List<UserCredentials> members) {
 		this.members = members;
 	}
-	public UserCredentials getChatRoomCreator() {
-		return chatRoomCreator;
+	public UserCredentials getCreator() {
+		return creator;
 	}
-	public void setChatRoomCreator(UserCredentials chatRoomCreator) {
-		this.chatRoomCreator = chatRoomCreator;
+	public void setCreator(UserCredentials creator) {
+		this.creator = creator;
 	}
+	
 }
