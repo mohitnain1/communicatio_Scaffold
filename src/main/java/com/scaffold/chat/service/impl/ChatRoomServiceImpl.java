@@ -53,7 +53,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		sendInviteToUsers(chatRoom, chatRoomMembersId);
 		ChatRoomResponse response = mapper.convertValue(chatRoom, ChatRoomResponse.class);
 		response.setMembers(mapChatRoomMembersResponse(chatRoom.getChatRoomMembersId()));
-		response.setChatRoomCreator(mapChatRoomMembersResponse(Arrays.asList(chatRoomCreator.getUserId())).get(0));
+		response.setCreator(mapChatRoomMembersResponse(Arrays.asList(chatRoomCreator.getUserId())).get(0));
 		return response;
 	}
 
@@ -202,7 +202,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 					.map(chatRoom -> {
 						ChatRoomResponse chatRoomResponse = mapper.convertValue(chatRoom, ChatRoomResponse.class);
 						chatRoomResponse.setMembers(mapChatRoomMembersResponse(chatRoom.getChatRoomMembersId()));
-						chatRoomResponse.setChatRoomCreator(mapChatRoomMembersResponse(Arrays.asList(chatRoom.getChatRoomCreatorId())).get(0));
+						chatRoomResponse.setCreator(mapChatRoomMembersResponse(Arrays.asList(chatRoom.getChatRoomCreatorId())).get(0));
 						return chatRoomResponse;
 					}).orElseGet(ChatRoomResponse::new);
 		}).filter(response -> !response.getChatRoomName().equals("")).collect(Collectors.toList());
