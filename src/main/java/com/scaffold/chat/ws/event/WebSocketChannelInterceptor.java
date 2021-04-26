@@ -3,6 +3,7 @@ package com.scaffold.chat.ws.event;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -63,7 +64,8 @@ public abstract class WebSocketChannelInterceptor implements ChannelInterceptor 
 			user.setUserProfilePicture(credentials.getImageLink());
 			user.setUsername(credentials.getUsername());
 			userDetailsRepository.save(user);
-		} else {
+		}
+		else {
 			User newUser = new User();
 			newUser.setUserId(credentials.getUserId());
 			newUser.setUsername(credentials.getUsername());

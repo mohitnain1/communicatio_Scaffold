@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import com.scaffold.chat.model.Message;
 import com.scaffold.chat.model.MessageStore;
-import com.scaffold.chat.model.User;
 import com.scaffold.chat.repository.ChatRoomRepository;
 import com.scaffold.chat.repository.MessageStoreRepository;
 import com.scaffold.chat.repository.UsersDetailRepository;
@@ -24,26 +23,37 @@ public class MessageServiceImpl implements MessageService {
 	@Autowired public MessageStoreRepository messageStoreRepository;
 	@Autowired private UsersDetailRepository userDetailsRepo;
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<Map<String, Object>> getAllMessages(String chatRoomId, String chatRoomAccessKey) {
-		String roomAccessKey = chatRoomRepository.findByChatRoomId(chatRoomId).getRoomAccessKey();
-		if(roomAccessKey.equals(chatRoomAccessKey)) {
-			MessageStore messageStore = messageStoreRepository.findByChatRoomId(chatRoomId);
-			List<Message> messageDetails = messageStore.getMessageDetails();
-			return messageDetails.stream().map(message -> mapMessageResponse(message)).collect(Collectors.toList());
-		} else {
-			return new ArrayList<>();
-		}
+		return (List<Map<String, Object>>) chatRoomRepository.findByChatRoomId(chatRoomId).map(chatRoom -> {
+			if(chatRoom.getRoomAccessKey().equals(chatRoomAccessKey)) {
+				MessageStore messageStore = messageStoreRepository.findByChatRoomId(chatRoomId);
+				List<Message> messageDetails = messageStore.getMessageDetails();
+				return messageDetails.stream().map(message -> mapMessageResponse(message)).collect(Collectors.toList());
+			} else {
+				return new ArrayList<>();
+			}
+		}).orElse(null);
 	}
 	
 	public Map<String, Object> mapMessageResponse(Message message) {
-		User user = userDetailsRepo.findByUserId(message.getMessageSenderId());
-		Map<String, Object> res = new HashMap<>();
-		res.put("content", message.getMesssageContent());
-		res.put("senderUsername", user == null ? "" : user.getUsername());
-		res.put("avatar", user == null ? "fa fa-user" : user.getUserProfilePicture());
-		res.put("sendingTime", Timestamp.valueOf(message.getMessageSendingTime()).getTime());
-		return res;
+		return userDetailsRepo.findByUserId(message.getMessageSenderId()).map(user -> {
+			Map<String, Object> res = new HashMap<>();
+			res.put("content", message.getMesssageContent());
+			res.put("senderUsername", user.getUsername());
+			res.put("avatar", user.getUserProfilePicture());
+			res.put("sendingTime", Timestamp.valueOf(message.getMessageSendingTime()).getTime());
+			return res;
+		}).orElseGet(() -> {
+			Map<String, Object> res = new HashMap<>();
+			res.put("content", message.getMesssageContent());
+			res.put("senderUsername",  "" );
+			res.put("avatar", "fa fa-user");
+			res.put("sendingTime", Timestamp.valueOf(message.getMessageSendingTime()).getTime());
+			return res;
+		});
+		
 	}
 
 }

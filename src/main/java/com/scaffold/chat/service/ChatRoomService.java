@@ -1,18 +1,19 @@
 package com.scaffold.chat.service;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.stereotype.Service;
+
+import com.scaffold.chat.datatransfer.ChatRoomResponse;
+import com.scaffold.security.domains.UserCredentials;
 
 @Service
 public interface ChatRoomService {
 	
-	public HashMap<String, Object> createChatRoom(String chatRoomName, long chatRoomCreatorId, List<Long> chatRoomMembersId);
+	public ChatRoomResponse createChatRoom(String chatRoomName, UserCredentials chatRoomCreator, List<UserCredentials> chatRoomMembersId);
 	
-	public List<Long> addMembers(String chatRoomId, List<Long> chatRoomMemebersId);
+	public List<UserCredentials> addMembers(String chatRoomId, List<UserCredentials> members);
 		
-	public List<Map<String, Object>> userChatRooms(long userId);
+	public List<ChatRoomResponse> userChatRooms(long userId);
 	
 }
