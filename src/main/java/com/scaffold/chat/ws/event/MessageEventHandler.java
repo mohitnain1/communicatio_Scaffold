@@ -37,7 +37,8 @@ public class MessageEventHandler extends WebSocketChannelInterceptor {
 	@Override
 	protected void onMessage(Message<?> message, StompHeaderAccessor accessor) {
 		ChatPayload messagePayload = (ChatPayload)converter.fromMessage(message, ChatPayload.class);
-		messagePayload.setMessageDestination(accessor.getDestination());
+		messagePayload.setSendingTime(System.currentTimeMillis());
+		messagePayload.setDestination(accessor.getDestination());
 		saveUserMessageInDatabase(messagePayload);
 		log.info("Got Message {}", messagePayload.toString());
 	}
@@ -51,11 +52,13 @@ public class MessageEventHandler extends WebSocketChannelInterceptor {
 	 * @param messagePayload Casted Message payload from request.
 	 */
 	public void saveUserMessageInDatabase(ChatPayload messagePayload) {
-		String messageDestination = messagePayload.getMessageDestination();
-		String chatRoomId =messageDestination.substring(messageDestination.indexOf(".")+1);
-		MessageStore messageStore = messageStoreRepository.findByChatRoomId(chatRoomId);
-		messageStore.addMessage(getMessageData(messagePayload));
-		messageStoreRepository.save(messageStore);	
+		if(!messagePayload.getContent().equals("")) {			
+			String messageDestination = messagePayload.getDestination();
+			String chatRoomId =messageDestination.substring(messageDestination.indexOf(".")+1);
+			MessageStore messageStore = messageStoreRepository.findByChatRoomId(chatRoomId);
+			messageStore.addMessage(getMessageData(messagePayload));
+			messageStoreRepository.save(messageStore);
+		}
 	}
 
 	/**
@@ -68,10 +71,10 @@ public class MessageEventHandler extends WebSocketChannelInterceptor {
 	 */
 	private com.scaffold.chat.model.Message getMessageData(ChatPayload messagePayload) {
 		com.scaffold.chat.model.Message messageDetail = new com.scaffold.chat.model.Message();
-		messageDetail.setMessageDestination(messagePayload.getMessageDestination());
-		messageDetail.setMessageSenderId(messagePayload.getMessageSenderId());
-		messageDetail.setMesssageContent(messagePayload.getMesssageContent());
-		messageDetail.setMessageSendingTime(new Timestamp(messagePayload.getMessageSendingTime()).toLocalDateTime());
+		messageDetail.setMessageDestination(messagePayload.getDestination());
+		messageDetail.setMessageSenderId(messagePayload.getSenderId());
+		messageDetail.setMesssageContent(messagePayload.getContent());
+		messageDetail.setMessageSendingTime(new Timestamp(messagePayload.getSendingTime()).toLocalDateTime());
 		return messageDetail;
 	}
 }
