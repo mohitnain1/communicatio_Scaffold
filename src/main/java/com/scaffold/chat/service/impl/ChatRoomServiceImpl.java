@@ -15,6 +15,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.scaffold.chat.datatransfer.ChatRoomRemoveParams;
 import com.scaffold.chat.datatransfer.ChatRoomResponse;
 import com.scaffold.chat.model.ChatRoom;
 import com.scaffold.chat.model.Message;
@@ -43,10 +44,8 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 
 	@Override
 	public ChatRoomResponse createChatRoom(String chatRoomName, UserCredentials chatRoomCreator, List<UserCredentials> chatRoomMembers) {
-	
-		chatRoomCreator.setCreator(true);
-		saveOrUpdateUsers(chatRoomMembers, chatRoomCreator);
-		//saveOrUpdateUsers(Arrays.asList(chatRoomCreator));
+		saveOrUpdateUsers(chatRoomMembers);
+		saveOrUpdateUsers(Arrays.asList(chatRoomCreator));
 		
 		List<Long> chatRoomMembersId = chatRoomMembers.stream().map(UserCredentials::getUserId).collect(Collectors.toList());
 		
@@ -139,7 +138,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	public List<UserCredentials> addMembers(String chatRoomId, List<UserCredentials> members) {
 		return chatRoomRepository.findByChatRoomId(chatRoomId).map(chatRoom -> {
 			List<Long> savedMemebersId = chatRoom.getChatRoomMembersId();
-			saveOrUpdateUsers(members, null);
+			saveOrUpdateUsers(members);
 			List<Long> newMembersId = members.stream().map(UserCredentials::getUserId).collect(Collectors.toList());
 			
 			savedMemebersId.addAll(newMembersId);
@@ -162,13 +161,16 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		}).collect(Collectors.toList());
 	}
 
-	private void saveOrUpdateUsers(List<UserCredentials> members, UserCredentials chatRoomCreator ) {
-		members.add(chatRoomCreator);
+	private void saveOrUpdateUsers(List<UserCredentials> members) {
 		members.stream().forEach(credentials -> {
 			User user = userDetailsRepository.findByUserId(credentials.getUserId());
 			if(Objects.nonNull(user)) {
-				user.setUserProfilePicture(credentials.getImageLink());
-				user.setUsername(credentials.getUsername());
+				if (!credentials.getImageLink().equals("")) {
+				    user.setUserProfilePicture(credentials.getImageLink());
+				}
+				if (!credentials.getUsername().equals("")) {
+				   user.setUsername(credentials.getUsername());
+				}
 				userDetailsRepository.save(user);
 			}
 			else {
@@ -182,6 +184,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 			}
 		});
 	}
+
 
 	@Override
 	public List<ChatRoomResponse> userChatRooms(long userId) {
@@ -211,4 +214,18 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 					}).orElseGet(ChatRoomResponse::new);
 		}).filter(response -> !response.getChatRoomName().equals("")).collect(Collectors.toList());
 	}
+	
+	
+	@Override
+	public String removeChatRoom(ChatRoomRemoveParams removeChatRoom) {
+		String chatRoomId = removeChatRoom.getChatRoomId();
+		chatRoomRepository.findByChatRoomId(chatRoomId).ifPresent(chatRoom ->{
+			List<Long> chatRoomMembersId = chatRoom.getChatRoomMembersId();
+			removeChatRoomFromUser(chatRoomMembersId, chatRoomId);
+			String id = chatRoom.getId();
+			chatRoomRepository.deleteById(id);
+		});
+		return chatRoomId;
+	}
+
 }
