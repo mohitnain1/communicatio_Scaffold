@@ -10,7 +10,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 
 import com.scaffold.chat.repository.MessageStoreRepository;
 import com.scaffold.chat.repository.UsersDetailRepository;
-import com.scaffold.chat.ws.event.MessageEventHandler;
+import com.scaffold.chat.ws.event.WebSocketChannelInterceptor;
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -33,6 +33,6 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
 
 	@Override
 	public void configureClientInboundChannel(ChannelRegistration registration) {
-		registration.interceptors(new MessageEventHandler(usersDetailRepository, messageStoreRepository));
+		registration.interceptors(new WebSocketChannelInterceptor(usersDetailRepository));
 	}
 }

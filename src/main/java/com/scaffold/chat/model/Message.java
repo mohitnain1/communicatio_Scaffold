@@ -4,43 +4,48 @@ import java.time.LocalDateTime;
 
 public class Message {
 	
-	private Long messageSenderId;
-	private String messsageContent;
-	private LocalDateTime messageSendingTime;
-	private String messageDestination;
+	private String id;
+	private Long senderId;
+	private String content;
+	private LocalDateTime sendingTime;
+	private String destination;
 	
-	public Message(Long messageSenderId, String messsageContent) {
-		this.messageSenderId = messageSenderId;
-		this.messsageContent = messsageContent;
+	public String getId() {
+		return id;
 	}
 	
-	public Message() {
+	public void setId(String id) {
+		this.id = id;
+	}
+	
+	public Long getSenderId() {
+		return senderId;
+	}
+	public void setSenderId(Long senderId) {
+		this.senderId = senderId;
+	}
+	public String getContent() {
+		return content;
+	}
+	public void setContent(String content) {
+		this.content = content;
+	}
+	public LocalDateTime getSendingTime() {
+		return sendingTime;
+	}
+	public void setSendingTime(LocalDateTime sendingTime) {
+		this.sendingTime = sendingTime;
+	}
+	public String getDestination() {
+		return destination;
+	}
+	public void setDestination(String destination) {
+		this.destination = destination;
 	}
 
-	public Long getMessageSenderId() {
-		return messageSenderId;
+	@Override
+	public String toString() {
+		return "Message [id=" + id + ", senderId=" + senderId + ", content=" + content + ", sendingTime=" + sendingTime
+				+ ", destination=" + destination + "]";
 	}
-	public void setMessageSenderId(Long messageSenderId) {
-		this.messageSenderId = messageSenderId;
-	}
-	public String getMesssageContent() {
-		return messsageContent;
-	}
-	public void setMesssageContent(String messsageContent) {
-		this.messsageContent = messsageContent;
-	}
-	public LocalDateTime getMessageSendingTime() {
-		return messageSendingTime;
-	}
-	public void setMessageSendingTime(LocalDateTime messageSendingTime) {
-		this.messageSendingTime = messageSendingTime;
-	}
-	public String getMessageDestination() {
-		return messageDestination;
-	}
-	public void setMessageDestination(String messageDestination) {
-		this.messageDestination = messageDestination;
-	}	
-	
-	
 }

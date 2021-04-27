@@ -1,28 +1,32 @@
 package com.scaffold.chat.ws.event;
 
 import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.stereotype.Component;
 
 import com.scaffold.chat.model.ChatPayload;
 import com.scaffold.chat.model.MessageStore;
 import com.scaffold.chat.repository.MessageStoreRepository;
-import com.scaffold.chat.repository.UsersDetailRepository;
+import com.scaffold.security.domains.UserCredentials;
+import com.scaffold.web.util.SimpleIdGenerator;
 
-public class MessageEventHandler extends WebSocketChannelInterceptor {
+@Component
+public class MessageEventHandler {
 	
 	public MessageStoreRepository messageStoreRepository;
 	
 	private static final Logger log = LoggerFactory.getLogger(MessageEventHandler.class);
-	private final MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
-
+	private final SimpleIdGenerator idGenerator = new SimpleIdGenerator();
 	
-	public MessageEventHandler(UsersDetailRepository usersDetailRepository, MessageStoreRepository messageStoreRepository) {
-		super(usersDetailRepository);
+	@Autowired
+	public MessageEventHandler(MessageStoreRepository messageStoreRepository) {
 		this.messageStoreRepository=messageStoreRepository;
 	}
 
@@ -33,14 +37,13 @@ public class MessageEventHandler extends WebSocketChannelInterceptor {
 	 * 
 	 * @param message The WebSocket Message model
 	 * @param accessor The Stomp Header accessor.
+	 * @return 
 	 */
-	@Override
-	protected void onMessage(Message<?> message, StompHeaderAccessor accessor) {
-		ChatPayload messagePayload = (ChatPayload)converter.fromMessage(message, ChatPayload.class);
+	public com.scaffold.chat.model.Message saveMessage(ChatPayload messagePayload, StompHeaderAccessor accessor) {
 		messagePayload.setSendingTime(System.currentTimeMillis());
 		messagePayload.setDestination(accessor.getDestination());
-		saveUserMessageInDatabase(messagePayload);
 		log.info("Got Message {}", messagePayload.toString());
+		return saveUserMessageInDatabase(messagePayload);
 	}
 	
 	/**
@@ -50,15 +53,19 @@ public class MessageEventHandler extends WebSocketChannelInterceptor {
 	 * saves the record in the database.
 	 * 
 	 * @param messagePayload Casted Message payload from request.
+	 * @return 
 	 */
-	public void saveUserMessageInDatabase(ChatPayload messagePayload) {
+	public com.scaffold.chat.model.Message saveUserMessageInDatabase(ChatPayload messagePayload) {
 		if(!messagePayload.getContent().equals("")) {			
 			String messageDestination = messagePayload.getDestination();
 			String chatRoomId =messageDestination.substring(messageDestination.indexOf(".")+1);
 			MessageStore messageStore = messageStoreRepository.findByChatRoomId(chatRoomId);
-			messageStore.addMessage(getMessageData(messagePayload));
+			com.scaffold.chat.model.Message savedMessage = getMessageData(messagePayload);
+			messageStore.addMessage(savedMessage);
 			messageStoreRepository.save(messageStore);
+			return savedMessage;
 		}
+		return null;
 	}
 
 	/**
@@ -71,10 +78,32 @@ public class MessageEventHandler extends WebSocketChannelInterceptor {
 	 */
 	private com.scaffold.chat.model.Message getMessageData(ChatPayload messagePayload) {
 		com.scaffold.chat.model.Message messageDetail = new com.scaffold.chat.model.Message();
-		messageDetail.setMessageDestination(messagePayload.getDestination());
-		messageDetail.setMessageSenderId(messagePayload.getSenderId());
-		messageDetail.setMesssageContent(messagePayload.getContent());
-		messageDetail.setMessageSendingTime(new Timestamp(messagePayload.getSendingTime()).toLocalDateTime());
+		messageDetail.setDestination(messagePayload.getDestination());
+		messageDetail.setSenderId(messagePayload.getSenderId());
+		messageDetail.setContent(messagePayload.getContent());
+		messageDetail.setSendingTime(new Timestamp(messagePayload.getSendingTime()).toLocalDateTime());
+		messageDetail.setId(idGenerator.generateRandomId());
 		return messageDetail;
+	}
+	
+	public UserCredentials getCredentials(Message<?> message) {
+		return (UserCredentials) StompHeaderAccessor.wrap(message).getUser();
+	}
+	
+	public <T> T getPayload(Message<T> message) {
+		return message.getPayload();
+	}
+	
+	public Map<String, Object> getResponseForClient(UserCredentials sender, com.scaffold.chat.model.Message body) {
+		HashMap<String, Object> chatMessage = new HashMap<String, Object>();
+		chatMessage.put("content", body.getContent());
+		chatMessage.put("sender", sender);
+		chatMessage.put("sendingTime", Timestamp.valueOf(body.getSendingTime()).getTime());
+		chatMessage.put("id", body.getId());
+		return chatMessage;
+	}
+	
+	public StompHeaderAccessor getHeaderAccessor(Message<?> message) {
+		return StompHeaderAccessor.wrap(message);
 	}
 }

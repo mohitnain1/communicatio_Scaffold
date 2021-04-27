@@ -18,7 +18,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scaffold.chat.datatransfer.ChatRoomRemoveParams;
 import com.scaffold.chat.datatransfer.ChatRoomResponse;
 import com.scaffold.chat.model.ChatRoom;
-import com.scaffold.chat.model.Message;
 import com.scaffold.chat.model.MessageStore;
 import com.scaffold.chat.model.User;
 import com.scaffold.chat.repository.ChatRoomRepository;
@@ -69,7 +68,6 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	private ChatRoom mapChatRoomCreationDetails(String chatRoomName, long chatRoomCreatorId,
 			List<Long> chatRoomMembersId) {
 		ChatRoom chatRoom = new ChatRoom(chatRoomName, chatRoomCreatorId, chatRoomMembersId);
-		chatRoom.setChatRoomType("Developer-Testing");
 		chatRoom.setChatRoomCreationDate(LocalDateTime.now());
 		chatRoom.setChatRoomLastConversationDate(LocalDateTime.now());
 		chatRoom.setChatRoomId(createChatRoomId());
@@ -120,18 +118,8 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	private MessageStore generateMessageStore(String chatRoomId) {
 		MessageStore messageStore = new MessageStore();
 		messageStore.setChatRoomId(chatRoomId);
-		messageStore.setMessageDetails(Arrays.asList(generateWelcomeMessage(chatRoomId)));
 		MessageStore savedMessageStore = messageStoreRepository.save(messageStore);
 		return savedMessageStore;
-	}
-
-	protected Message generateWelcomeMessage(String chatRoomId) {
-		Message messageDetail = new Message();
-		messageDetail.setMessageDestination("/topic/" + chatRoomId);
-		messageDetail.setMessageSenderId(1L);
-		messageDetail.setMessageSendingTime(LocalDateTime.now());
-		messageDetail.setMesssageContent("Hello everyone!!");
-		return messageDetail;
 	}
 
 	@Override
@@ -156,7 +144,6 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 			User user = userDetailsRepository.findByUserId(userId.longValue());
 			UserCredentials credentials = mapper.convertValue(user, UserCredentials.class);
 			credentials.setImageLink(user.getUserProfilePicture());
-		//	credentials.setCreator(true);
 			return credentials;
 		}).collect(Collectors.toList());
 	}

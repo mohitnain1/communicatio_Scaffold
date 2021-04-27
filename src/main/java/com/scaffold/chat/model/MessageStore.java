@@ -1,5 +1,6 @@
 package com.scaffold.chat.model;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import org.springframework.data.annotation.Id;
@@ -8,7 +9,7 @@ public class MessageStore {
 	@Id
 	private String id;
 	private String chatRoomId;
-	private List<Message> messageDetails;
+	private List<Message> messageDetails = new LinkedList<>();
 
 	public MessageStore(String chatRoomId, List<Message> messageDetails) {
 		this.chatRoomId = chatRoomId;
