@@ -2,14 +2,8 @@ package com.scaffold.chat.model;
 
 import java.time.LocalDateTime;
 
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.FieldType;
-import org.springframework.data.mongodb.core.mapping.MongoId;
-
-@Document
 public class Message {
 	
-	@MongoId(targetType = FieldType.STRING)
 	private String id;
 	private Long senderId;
 	private String content;
@@ -48,6 +42,10 @@ public class Message {
 	public void setDestination(String destination) {
 		this.destination = destination;
 	}
-	
-	
+
+	@Override
+	public String toString() {
+		return "Message [id=" + id + ", senderId=" + senderId + ", content=" + content + ", sendingTime=" + sendingTime
+				+ ", destination=" + destination + "]";
+	}
 }

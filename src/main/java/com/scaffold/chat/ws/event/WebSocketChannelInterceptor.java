@@ -21,7 +21,7 @@ import com.scaffold.security.domains.UserCredentials;
 import com.scaffold.security.domains.UserEvent;
 import com.scaffold.security.domains.UserSessionRepo;
 
-public abstract class WebSocketChannelInterceptor implements ChannelInterceptor {
+public class WebSocketChannelInterceptor implements ChannelInterceptor {
 	
 	private static final Logger log = LoggerFactory.getLogger(WebSocketChannelInterceptor.class);
 	final UserSessionRepo userSessions= UserSessionRepo.getInstance();
@@ -39,10 +39,18 @@ public abstract class WebSocketChannelInterceptor implements ChannelInterceptor 
 			handleSessionConnected(message, accessor);
 		} else if (accessor.getCommand().equals(StompCommand.DISCONNECT)) {
 			handleSessionDisconnect(message, accessor);
-		}else if (accessor.getCommand().equals(StompCommand.SEND)) {
-			onMessage(message, accessor);
 		}
 		return message;
+	}
+	
+	@Override
+	public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
+		ChannelInterceptor.super.postSend(message, channel, sent);
+	}
+
+	@Override
+	public Message<?> postReceive(Message<?> message, MessageChannel channel) {
+		return ChannelInterceptor.super.postReceive(message, channel);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -95,5 +103,4 @@ public abstract class WebSocketChannelInterceptor implements ChannelInterceptor 
 		log.info("The user disconnected {}", logout);
 	}
 	
-	protected abstract void onMessage(Message<?> message, StompHeaderAccessor accessor);
 }
