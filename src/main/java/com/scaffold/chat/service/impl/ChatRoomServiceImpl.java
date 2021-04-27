@@ -16,6 +16,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.scaffold.chat.datatransfer.ChatRoomRemoveParams;
 import com.scaffold.chat.datatransfer.ChatRoomResponse;
 import com.scaffold.chat.model.ChatRoom;
 import com.scaffold.chat.model.Message;
@@ -38,7 +39,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 
 	@Autowired public ChatRoomRepository chatRoomRepository;
 	@Autowired public MessageStoreRepository messageStoreRepository;
-	@Autowired public  UsersDetailRepository userDetailsRepository;
+	@Autowired public UsersDetailRepository userDetailsRepository;
 	@Autowired public SimpMessagingTemplate simpMessagingTemplate;
 	@Autowired private ObjectMapper mapper;
 
@@ -145,6 +146,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 			User user = userDetailsRepository.findByUserId(userId.longValue());
 			UserCredentials credentials = mapper.convertValue(user, UserCredentials.class);
 			credentials.setImageLink(user.getUserProfilePicture());
+		//	credentials.setCreator(true);
 			return credentials;
 		}).collect(Collectors.toList());
 	}
@@ -172,6 +174,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 			}
 		});
 	}
+
 
 	@Override
 	public List<ChatRoomResponse> userChatRooms(long userId) {
@@ -201,4 +204,18 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 					}).orElseGet(ChatRoomResponse::new);
 		}).filter(response -> !response.getChatRoomName().equals("")).collect(Collectors.toList());
 	}
+	
+	
+	@Override
+	public String removeChatRoom(ChatRoomRemoveParams removeChatRoom) {
+		String chatRoomId = removeChatRoom.getChatRoomId();
+		chatRoomRepository.findByChatRoomId(chatRoomId).ifPresent(chatRoom ->{
+			List<Long> chatRoomMembersId = chatRoom.getChatRoomMembersId();
+			removeChatRoomFromUser(chatRoomMembersId, chatRoomId);
+			String id = chatRoom.getId();
+			chatRoomRepository.deleteById(id);
+		});
+		return chatRoomId;
+	}
+
 }

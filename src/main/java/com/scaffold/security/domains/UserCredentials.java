@@ -10,7 +10,7 @@ public class UserCredentials implements Principal {
 	private long userId;
 	private String imageLink;
 	private String username;
-
+	
 	public UserCredentials(long userId, String imageLink, String username) {
 		this.userId = userId;
 		this.imageLink = imageLink;
@@ -40,7 +40,8 @@ public class UserCredentials implements Principal {
 	public void setUsername(String username) {
 		this.username = username;
 	}
-
+	
+	
 	@Override
 	public String getName() {
 		return this.username;
@@ -51,7 +52,7 @@ public class UserCredentials implements Principal {
 		UserCredentials cred = (UserCredentials) obj;
 		return this.userId == cred.getUserId();
 	}
-
+	
 	@Override
 	public String toString() {
 		return "UserCredentials [userId=" + userId + ", imageLink=" + imageLink + ", username=" + username + "]";
