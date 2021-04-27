@@ -60,8 +60,12 @@ public abstract class WebSocketChannelInterceptor implements ChannelInterceptor 
 	private void saveOrUpdateUserInDatabase(UserCredentials credentials) {
 		User user = userDetailsRepository.findByUserId(credentials.getUserId());
 		if(Objects.nonNull(user)) {
-			user.setUserProfilePicture(credentials.getImageLink());
-			user.setUsername(credentials.getUsername());
+			if (!credentials.getImageLink().equals("")) {
+			    user.setUserProfilePicture(credentials.getImageLink());
+			}
+			if (!credentials.getUsername().equals("")) {
+			   user.setUsername(credentials.getUsername());
+			}
 			userDetailsRepository.save(user);
 		}
 		else {
