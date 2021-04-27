@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.scaffold.chat.model.Message;
 import com.scaffold.chat.model.MessageStore;
+import com.scaffold.chat.model.User;
 import com.scaffold.chat.repository.ChatRoomRepository;
 import com.scaffold.chat.repository.MessageStoreRepository;
 import com.scaffold.chat.repository.UsersDetailRepository;
@@ -40,20 +41,13 @@ public class MessageServiceImpl implements MessageService {
 	}
 	
 	public Map<String, Object> mapMessageResponse(Message message) {
-		return userDetailsRepo.findByUserId(message.getMessageSenderId()).map(user -> {
-			Map<String, Object> res = new HashMap<>();
-			res.put("content", message.getMesssageContent());
-			res.put("sender", new UserCredentials(user.getUserId(), user.getUserProfilePicture(), user.getUsername()));
-			res.put("sendingTime", Timestamp.valueOf(message.getMessageSendingTime()).getTime());
-			return res;
-		}).orElseGet(() -> {
-			Map<String, Object> res = new HashMap<>();
-			res.put("content", message.getMesssageContent());
-			res.put("sender",  "" );
-			res.put("sendingTime", Timestamp.valueOf(message.getMessageSendingTime()).getTime());
-			return res;
-		});
-		
+		User user = userDetailsRepo.findByUserId(message.getSenderId().longValue());
+		Map<String, Object> res = new HashMap<>();
+		res.put("content", message.getContent());
+		res.put("sender", new UserCredentials(user.getUserId(), user.getUserProfilePicture(), user.getUsername()));
+		res.put("sendingTime", Timestamp.valueOf(message.getSendingTime()).getTime());
+		res.put("id", message.getId());
+		return res;
 	}
 
 }

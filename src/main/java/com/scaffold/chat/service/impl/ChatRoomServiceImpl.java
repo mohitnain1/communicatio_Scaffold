@@ -3,6 +3,7 @@ package com.scaffold.chat.service.impl;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -69,7 +70,6 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	private ChatRoom mapChatRoomCreationDetails(String chatRoomName, long chatRoomCreatorId,
 			List<Long> chatRoomMembersId) {
 		ChatRoom chatRoom = new ChatRoom(chatRoomName, chatRoomCreatorId, chatRoomMembersId);
-		chatRoom.setChatRoomType("Developer-Testing");
 		chatRoom.setChatRoomCreationDate(LocalDateTime.now());
 		chatRoom.setChatRoomLastConversationDate(LocalDateTime.now());
 		chatRoom.setChatRoomId(createChatRoomId());
@@ -120,18 +120,8 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	private MessageStore generateMessageStore(String chatRoomId) {
 		MessageStore messageStore = new MessageStore();
 		messageStore.setChatRoomId(chatRoomId);
-		messageStore.setMessageDetails(Arrays.asList(generateWelcomeMessage(chatRoomId)));
 		MessageStore savedMessageStore = messageStoreRepository.save(messageStore);
 		return savedMessageStore;
-	}
-
-	protected Message generateWelcomeMessage(String chatRoomId) {
-		Message messageDetail = new Message();
-		messageDetail.setMessageDestination("/topic/" + chatRoomId);
-		messageDetail.setMessageSenderId(1L);
-		messageDetail.setMessageSendingTime(LocalDateTime.now());
-		messageDetail.setMesssageContent("Hello everyone!!");
-		return messageDetail;
 	}
 
 	@Override
