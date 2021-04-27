@@ -1,6 +1,8 @@
 package com.scaffold.chat.ws.event;
 
 import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,20 +12,24 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 
 import com.scaffold.chat.model.ChatPayload;
 import com.scaffold.chat.model.MessageStore;
+import com.scaffold.chat.repository.MessageRepository;
 import com.scaffold.chat.repository.MessageStoreRepository;
 import com.scaffold.chat.repository.UsersDetailRepository;
 
 public class MessageEventHandler extends WebSocketChannelInterceptor {
 	
 	public MessageStoreRepository messageStoreRepository;
+	private MessageRepository messageRepository;
 	
 	private static final Logger log = LoggerFactory.getLogger(MessageEventHandler.class);
 	private final MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
 
 	
-	public MessageEventHandler(UsersDetailRepository usersDetailRepository, MessageStoreRepository messageStoreRepository) {
+	public MessageEventHandler(UsersDetailRepository usersDetailRepository, MessageStoreRepository messageStoreRepository, 
+			MessageRepository messageRepository) {
 		super(usersDetailRepository);
 		this.messageStoreRepository=messageStoreRepository;
+		this.messageRepository = messageRepository;
 	}
 
 	/**
@@ -56,7 +62,12 @@ public class MessageEventHandler extends WebSocketChannelInterceptor {
 			String messageDestination = messagePayload.getDestination();
 			String chatRoomId =messageDestination.substring(messageDestination.indexOf(".")+1);
 			MessageStore messageStore = messageStoreRepository.findByChatRoomId(chatRoomId);
-			messageStore.addMessage(getMessageData(messagePayload));
+			com.scaffold.chat.model.Message savedMessage = getMessageData(messagePayload);
+			if(Objects.nonNull(messageStore.getMessageDetails())) {
+				messageStore.addMessage(savedMessage);
+			} else {
+				messageStore.setMessageDetails(Arrays.asList(savedMessage));
+			}
 			messageStoreRepository.save(messageStore);
 		}
 	}
@@ -71,10 +82,11 @@ public class MessageEventHandler extends WebSocketChannelInterceptor {
 	 */
 	private com.scaffold.chat.model.Message getMessageData(ChatPayload messagePayload) {
 		com.scaffold.chat.model.Message messageDetail = new com.scaffold.chat.model.Message();
-		messageDetail.setMessageDestination(messagePayload.getDestination());
-		messageDetail.setMessageSenderId(messagePayload.getSenderId());
-		messageDetail.setMesssageContent(messagePayload.getContent());
-		messageDetail.setMessageSendingTime(new Timestamp(messagePayload.getSendingTime()).toLocalDateTime());
+		messageDetail.setDestination(messagePayload.getDestination());
+		messageDetail.setSenderId(messagePayload.getSenderId());
+		messageDetail.setContent(messagePayload.getContent());
+		messageDetail.setSendingTime(new Timestamp(messagePayload.getSendingTime()).toLocalDateTime());
+		messageRepository.save(messageDetail);
 		return messageDetail;
 	}
 }

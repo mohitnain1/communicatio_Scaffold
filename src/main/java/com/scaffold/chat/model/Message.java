@@ -2,45 +2,52 @@ package com.scaffold.chat.model;
 
 import java.time.LocalDateTime;
 
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.FieldType;
+import org.springframework.data.mongodb.core.mapping.MongoId;
+
+@Document
 public class Message {
 	
-	private Long messageSenderId;
-	private String messsageContent;
-	private LocalDateTime messageSendingTime;
-	private String messageDestination;
+	@MongoId(targetType = FieldType.STRING)
+	private String id;
+	private Long senderId;
+	private String content;
+	private LocalDateTime sendingTime;
+	private String destination;
 	
-	public Message(Long messageSenderId, String messsageContent) {
-		this.messageSenderId = messageSenderId;
-		this.messsageContent = messsageContent;
+	public String getId() {
+		return id;
 	}
 	
-	public Message() {
+	public void setId(String id) {
+		this.id = id;
 	}
-
-	public Long getMessageSenderId() {
-		return messageSenderId;
+	
+	public Long getSenderId() {
+		return senderId;
 	}
-	public void setMessageSenderId(Long messageSenderId) {
-		this.messageSenderId = messageSenderId;
+	public void setSenderId(Long senderId) {
+		this.senderId = senderId;
 	}
-	public String getMesssageContent() {
-		return messsageContent;
+	public String getContent() {
+		return content;
 	}
-	public void setMesssageContent(String messsageContent) {
-		this.messsageContent = messsageContent;
+	public void setContent(String content) {
+		this.content = content;
 	}
-	public LocalDateTime getMessageSendingTime() {
-		return messageSendingTime;
+	public LocalDateTime getSendingTime() {
+		return sendingTime;
 	}
-	public void setMessageSendingTime(LocalDateTime messageSendingTime) {
-		this.messageSendingTime = messageSendingTime;
+	public void setSendingTime(LocalDateTime sendingTime) {
+		this.sendingTime = sendingTime;
 	}
-	public String getMessageDestination() {
-		return messageDestination;
+	public String getDestination() {
+		return destination;
 	}
-	public void setMessageDestination(String messageDestination) {
-		this.messageDestination = messageDestination;
-	}	
+	public void setDestination(String destination) {
+		this.destination = destination;
+	}
 	
 	
 }
