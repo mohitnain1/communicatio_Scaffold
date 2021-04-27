@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import com.scaffold.chat.model.Message;
 import com.scaffold.chat.model.MessageStore;
-import com.scaffold.chat.model.User;
 import com.scaffold.chat.repository.ChatRoomRepository;
 import com.scaffold.chat.repository.MessageStoreRepository;
 import com.scaffold.chat.repository.UsersDetailRepository;
@@ -21,6 +20,7 @@ import com.scaffold.security.domains.UserCredentials;
 
 @Service
 public class MessageServiceImpl implements MessageService {
+	
 	@Autowired public ChatRoomRepository chatRoomRepository;
 	@Autowired public MessageStoreRepository messageStoreRepository;
 	@Autowired private UsersDetailRepository userDetailsRepo;
