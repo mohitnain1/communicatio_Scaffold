@@ -33,6 +33,7 @@ public class MessageServiceImpl implements MessageService {
 			if(chatRoom.getRoomAccessKey().equals(chatRoomAccessKey)) {
 				MessageStore messageStore = messageStoreRepository.findByChatRoomId(chatRoomId);
 				List<Message> messageDetails = messageStore.getMessageDetails();
+				System.out.println(messageDetails.size());
 				return messageDetails.stream().map(message -> mapMessageResponse(message)).collect(Collectors.toList());
 			} else {
 				return new ArrayList<>();

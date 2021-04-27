@@ -1,16 +1,15 @@
 package com.scaffold.chat.model;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 
 public class MessageStore {
 	@Id
 	private String id;
 	private String chatRoomId;
-	@DBRef(lazy = true)
-	private List<Message> messageDetails;
+	private List<Message> messageDetails = new LinkedList<>();
 
 	public MessageStore(String chatRoomId, List<Message> messageDetails) {
 		this.chatRoomId = chatRoomId;

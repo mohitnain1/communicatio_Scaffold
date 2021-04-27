@@ -1,36 +1,32 @@
 package com.scaffold.chat.ws.controller;
 
-import java.util.HashMap;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.scaffold.chat.model.ChatPayload;
 import com.scaffold.chat.service.ChatRoomService;
-import com.scaffold.security.domains.UserCredentials;
+import com.scaffold.chat.ws.event.MessageEventHandler;
 
 @RestController
 public class WebSocketController {
 	
-	@Autowired 
-	private SimpMessagingTemplate simpMessagingTemplate;
+	@Autowired SimpMessagingTemplate simpMessagingTemplate;
 	@Autowired ChatRoomService chatRoomService;
-
+	@Autowired MessageEventHandler messageEventHandler;
+	
 	@MessageMapping("/chat.{chatRoomId}")
-	public Object chatRoom(@DestinationVariable String chatRoomId, @Payload ChatPayload message, UserCredentials principal) {
-		message.setUsername(principal.getUsername());
-		message.setSendingTime(System.currentTimeMillis());
-		
-		HashMap<String, Object> chatMessage = new HashMap<String, Object>();
-		chatMessage.put("content", message.getContent());
-		chatMessage.put("sender", principal);
-		chatMessage.put("sendingTime", message.getSendingTime());
-		
-		simpMessagingTemplate.convertAndSend("/topic/conversations."+chatRoomId, chatMessage);
-		return message;
+	public void chatRoom(@DestinationVariable String chatRoomId, Message<ChatPayload> message) {
+		com.scaffold.chat.model.Message savedMessage = messageEventHandler
+				.saveMessage(message.getPayload(), messageEventHandler.getHeaderAccessor(message));
+		if(Objects.nonNull(savedMessage)) {
+			simpMessagingTemplate.convertAndSend("/topic/conversations."+chatRoomId, messageEventHandler
+					.getResponseForClient(messageEventHandler.getCredentials(message), savedMessage));
+		}
 	}
 }

@@ -3,7 +3,6 @@ package com.scaffold.chat.service.impl;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -19,7 +18,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scaffold.chat.datatransfer.ChatRoomRemoveParams;
 import com.scaffold.chat.datatransfer.ChatRoomResponse;
 import com.scaffold.chat.model.ChatRoom;
-import com.scaffold.chat.model.Message;
 import com.scaffold.chat.model.MessageStore;
 import com.scaffold.chat.model.User;
 import com.scaffold.chat.repository.ChatRoomRepository;
@@ -146,7 +144,6 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 			User user = userDetailsRepository.findByUserId(userId.longValue());
 			UserCredentials credentials = mapper.convertValue(user, UserCredentials.class);
 			credentials.setImageLink(user.getUserProfilePicture());
-		//	credentials.setCreator(true);
 			return credentials;
 		}).collect(Collectors.toList());
 	}
