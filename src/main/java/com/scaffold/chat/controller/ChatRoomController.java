@@ -7,6 +7,7 @@ import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.scaffold.chat.datatransfer.ChatRoomCreationParams;
+import com.scaffold.chat.datatransfer.ChatRoomRemoveParams;
 import com.scaffold.chat.datatransfer.ChatRoomResponse;
 import com.scaffold.chat.datatransfer.ChatRoomUpdateParams;
 import com.scaffold.chat.service.ChatRoomService;
@@ -36,6 +38,12 @@ public class ChatRoomController {
 		ChatRoomResponse chatRoomId = chatRoomServices.createChatRoom(params.getChatRoomName(),
 				params.getCreator(), params.getMembers());
 		return Response.generateResponse(HttpStatus.CREATED, chatRoomId, "Chatroom Created", true);
+	}
+	
+	@DeleteMapping(UrlConstants.REMOVE_CHATROOM)
+	public ResponseEntity<Object> removeChatRoom(@RequestBody ChatRoomRemoveParams removeChatRoom) {
+		String removeChatRoomId = chatRoomServices.removeChatRoom(removeChatRoom);
+		return Response.generateResponse(HttpStatus.CREATED, removeChatRoomId, "Chatroom removed", true);
 	}
 	
 	@PutMapping(UrlConstants.UPDATE_MEMBERS)
