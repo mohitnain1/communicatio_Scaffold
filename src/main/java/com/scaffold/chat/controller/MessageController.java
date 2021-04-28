@@ -1,6 +1,5 @@
 package com.scaffold.chat.controller;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -25,7 +24,7 @@ public class MessageController {
 	
 	@GetMapping(value = "/messages")
 	public ResponseEntity<Object> getAllMessages(@RequestParam String chatRoomId, @RequestParam String accessKey) {
-		List<Map<String, Object>> message = messageService.getAllMessages(chatRoomId, accessKey);
+		Map<String, Object> message = messageService.getAllMessages(chatRoomId, accessKey);
 		if(Objects.isNull(message)) {
 			return Response.generateResponse(HttpStatus.OK, null, "Invalid Chatroom Id", false);
 		} else if(message.isEmpty()) {

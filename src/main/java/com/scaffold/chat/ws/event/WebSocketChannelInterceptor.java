@@ -45,7 +45,7 @@ public class WebSocketChannelInterceptor implements ChannelInterceptor {
 	
 	@Override
 	public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
-		ChannelInterceptor.super.postSend(message, channel, sent);
+		
 	}
 
 	@Override

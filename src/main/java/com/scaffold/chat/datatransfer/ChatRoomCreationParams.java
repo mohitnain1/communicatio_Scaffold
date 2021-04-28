@@ -6,16 +6,9 @@ import com.scaffold.security.domains.UserCredentials;
 
 public class ChatRoomCreationParams {
 	
-	private UserCredentials creator;
 	private String chatRoomName;
 	private List<UserCredentials> members;
 	
-	public UserCredentials getCreator() {
-		return creator;
-	}
-	public void setCreator(UserCredentials creator) {
-		this.creator = creator;
-	}
 	public String getChatRoomName() {
 		return chatRoomName;
 	}
@@ -27,5 +20,9 @@ public class ChatRoomCreationParams {
 	}
 	public void setMembers(List<UserCredentials> members) {
 		this.members = members;
+	}
+	@Override
+	public String toString() {
+		return "ChatRoomCreationParams [chatRoomName=" + chatRoomName + ", members=" + members + "]";
 	}
 }

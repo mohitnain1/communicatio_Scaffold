@@ -2,22 +2,25 @@ package com.scaffold.chat.service.impl;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.scaffold.chat.datatransfer.ChatRoomRemoveParams;
 import com.scaffold.chat.datatransfer.ChatRoomResponse;
 import com.scaffold.chat.model.ChatRoom;
+import com.scaffold.chat.model.Member;
 import com.scaffold.chat.model.MessageStore;
 import com.scaffold.chat.model.User;
 import com.scaffold.chat.repository.ChatRoomRepository;
@@ -32,6 +35,7 @@ import com.scaffold.web.util.Destinations;
 public class ChatRoomServiceImpl implements ChatRoomService {
 	
 	@Autowired JwtUtil jwtUtil;
+	@Autowired MongoTemplate mongoTemplate;
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChatRoomServiceImpl.class);
 
@@ -42,70 +46,46 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	@Autowired private ObjectMapper mapper;
 
 	@Override
-	public ChatRoomResponse createChatRoom(String chatRoomName, UserCredentials chatRoomCreator, List<UserCredentials> chatRoomMembers) {
-		saveOrUpdateUsers(chatRoomMembers);
-		saveOrUpdateUsers(Arrays.asList(chatRoomCreator));
-		
-		List<Long> chatRoomMembersId = chatRoomMembers.stream().map(UserCredentials::getUserId).collect(Collectors.toList());
-		
-		ChatRoom chatRoom = mapChatRoomCreationDetails(chatRoomName, chatRoomCreator.getUserId(), chatRoomMembersId);		
-		
-		sendInviteToUsers(chatRoom, chatRoomMembersId);
-		ChatRoomResponse response = mapper.convertValue(chatRoom, ChatRoomResponse.class);
-		response.setMembers(mapChatRoomMembersResponse(chatRoom.getChatRoomMembersId()));
-		response.setCreator(mapChatRoomMembersResponse(Arrays.asList(chatRoomCreator.getUserId())).get(0));
-		return response;
+	public ChatRoomResponse createChatRoom(String chatRoomName, List<UserCredentials> chatRoomMembers) {
+		Optional<ChatRoom> existingChatRoom = chatRoomRepository.findByChatRoomName(chatRoomName);
+		if(existingChatRoom.isPresent()) {
+			return null;
+		} else {
+			saveOrUpdateUsers(chatRoomMembers);	
+			
+			List<Member> members = chatRoomMembers.stream().map(member-> new Member(member.getUserId(), member.getIsCreator())).collect(Collectors.toList());
+			ChatRoom chatRoom = mapChatRoomCreationDetails(chatRoomName, members);		
+			
+			sendInviteToUsers(chatRoom, chatRoomMembers);
+			ChatRoomResponse response = mapper.convertValue(chatRoom, ChatRoomResponse.class);
+			response.setTotalMembers(chatRoom.getMembers().size());
+			return response;
+		}
 	}
 
-	private void sendInviteToUsers(ChatRoom chatRoom, List<Long> chatRoomMembersId) {
-		ChatRoomResponse response = mapper.convertValue(chatRoom, ChatRoomResponse.class);
-		chatRoomMembersId.forEach(member -> {
-			String destination = String.format(Destinations.INVITATION.getPath(), member.toString());
+	private void sendInviteToUsers(ChatRoom chatRoom, List<UserCredentials> chatRoomMembers) {
+		HashMap<String, Object> response = new HashMap<>();
+		response.put("chatRoomId", chatRoom.getChatRoomId());
+		response.put("chatRoomName", chatRoom.getChatRoomName());
+		response.put("roomAccessKey", chatRoom.getRoomAccessKey());
+		response.put("totalMembers", chatRoom.getMembers().size());
+		response.put("creator", chatRoomMembers.stream().filter(member -> member.getIsCreator() == true).findFirst().get());
+		
+		chatRoom.getMembers().forEach(member -> {
+			String destination = String.format(Destinations.INVITATION.getPath(), member.getUserId());
 			simpMessagingTemplate.convertAndSend(destination ,response);
 		});
 	}
 
-	private ChatRoom mapChatRoomCreationDetails(String chatRoomName, long chatRoomCreatorId,
-			List<Long> chatRoomMembersId) {
-		ChatRoom chatRoom = new ChatRoom(chatRoomName, chatRoomCreatorId, chatRoomMembersId);
+	private ChatRoom mapChatRoomCreationDetails(String chatRoomName, List<Member> members) {
+		ChatRoom chatRoom = new ChatRoom(chatRoomName, members);
 		chatRoom.setChatRoomCreationDate(LocalDateTime.now());
 		chatRoom.setChatRoomLastConversationDate(LocalDateTime.now());
 		chatRoom.setChatRoomId(createChatRoomId());
 		chatRoom.setMessageStore(generateMessageStore(chatRoom.getChatRoomId()));
 		chatRoom.setRoomAccessKey(jwtUtil.generateToken(chatRoom.getChatRoomId()));
 		chatRoom = chatRoomRepository.save(chatRoom);
-		chatRoomMembersId.add(chatRoomCreatorId);
-		addSubscribedChatRoomToUser(chatRoomMembersId, chatRoom.getChatRoomId());
-		chatRoomMembersId.remove(chatRoomCreatorId);	
 		return chatRoom;
-	}
-
-	private void addSubscribedChatRoomToUser(List<Long> chatRoomMembersId, String chatRoomId) {
-		chatRoomMembersId.stream().forEach(userId -> {
-			userDetailsRepository.findByUserId(userId).ifPresent(user -> {
-				try {
-					List<String> chatRooms = user.getChatRoomIds();
-					if(!chatRooms.contains(chatRoomId)) {
-						chatRooms.add(chatRoomId);
-					}
-					user.setChatRoomIds(chatRooms);
-				} catch (NullPointerException e) {
-					user.setChatRoomIds(Arrays.asList(chatRoomId));
-				}
-				userDetailsRepository.save(user);
-			});
-		});
-	}
-	
-	private void removeChatRoomFromUser(List<Long> chatRoomMembersId, String chatRoomId) {
-		chatRoomMembersId.stream().forEach(userId -> {
-			userDetailsRepository.findByUserId(userId).ifPresent(user -> {
-				List<String> chatRooms = user.getChatRoomIds();
-				chatRooms.removeIf(room -> room.equalsIgnoreCase(chatRoomId));
-				user.setChatRoomIds(chatRooms);
-				userDetailsRepository.save(user);
-			});
-		});
 	}
 
 	private String createChatRoomId() {
@@ -125,27 +105,21 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	@Override
 	public List<UserCredentials> addMembers(String chatRoomId, List<UserCredentials> members) {
 		return chatRoomRepository.findByChatRoomId(chatRoomId).map(chatRoom -> {
-			List<Long> savedMemebersId = chatRoom.getChatRoomMembersId();
+			chatRoom.getMembers().clear();
 			saveOrUpdateUsers(members);
-			List<Long> newMembersId = members.stream().map(UserCredentials::getUserId).collect(Collectors.toList());
-			
-			savedMemebersId.addAll(newMembersId);
-			chatRoom.setChatRoomMembersId(savedMemebersId.stream().distinct().collect(Collectors.toList()));
+			List<Member> newMembers = userCredentialToMemberMapper(members);			
+			chatRoom.setMembers(newMembers);
 			chatRoom = chatRoomRepository.save(chatRoom);
-			addSubscribedChatRoomToUser(savedMemebersId, chatRoomId);
-			sendInviteToUsers(chatRoom, newMembersId);
+			sendInviteToUsers(chatRoom, members);
 			LOGGER.info("Members added successfully....");
-			return mapChatRoomMembersResponse(chatRoom.getChatRoomMembersId());
+			return mapChatRoomMembersResponse(chatRoom.getMembers());
 		}).orElseGet(ArrayList::new);
 	}
 
-	private List<UserCredentials> mapChatRoomMembersResponse(List<Long> chatRoomMembersId) {
-		return chatRoomMembersId.stream().map(userId -> {
-			User user = userDetailsRepository.findByUserId(userId.longValue());
-			UserCredentials credentials = mapper.convertValue(user, UserCredentials.class);
-			credentials.setImageLink(user.getUserProfilePicture());
-			return credentials;
-		}).collect(Collectors.toList());
+
+	private List<Member> userCredentialToMemberMapper(List<UserCredentials> members) {
+		return members.stream().map(mem -> new Member(mem.getUserId(), mem.getIsCreator()))
+				.collect(Collectors.toList());
 	}
 
 	private void saveOrUpdateUsers(List<UserCredentials> members) {
@@ -172,47 +146,23 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		});
 	}
 
-
 	@Override
 	public List<ChatRoomResponse> userChatRooms(long userId) {
-		User user = userDetailsRepository.findByUserId(userId);
-		if(Objects.nonNull(user)) {
-			//Removing duplicate chat-rooms from list.
-			List<String> userChatRooms = user.getChatRoomIds();
-			if(Objects.nonNull(userChatRooms) && !userChatRooms.isEmpty()) {
-				userChatRooms = userChatRooms.stream().distinct().collect(Collectors.toList());
-				return mapUserChatRoomResponse(userChatRooms);
-			} else {
-				return new ArrayList<ChatRoomResponse>();
-			}
-		} else {
-			return null;
-		}
-	}
-
-	private List<ChatRoomResponse> mapUserChatRoomResponse(List<String> userChatRooms) {
-		return userChatRooms.stream().map(chatRoomId -> {
-			return chatRoomRepository.findByChatRoomId(chatRoomId)
-					.map(chatRoom -> {
-						ChatRoomResponse chatRoomResponse = mapper.convertValue(chatRoom, ChatRoomResponse.class);
-						chatRoomResponse.setMembers(mapChatRoomMembersResponse(chatRoom.getChatRoomMembersId()));
-						chatRoomResponse.setCreator(mapChatRoomMembersResponse(Arrays.asList(chatRoom.getChatRoomCreatorId())).get(0));
-						return chatRoomResponse;
-					}).orElseGet(ChatRoomResponse::new);
-		}).filter(response -> !response.getChatRoomName().equals("")).collect(Collectors.toList());
+		return mongoTemplate.query(ChatRoom.class)
+				.matching(Criteria.where("members.userId").is(userId))
+				.all().stream().map(chatRoom -> {
+					ChatRoomResponse chatRoomResponse = mapper.convertValue(chatRoom, ChatRoomResponse.class);
+					chatRoomResponse.setTotalMembers(chatRoom.getMembers().size());
+					return chatRoomResponse;
+				}).collect(Collectors.toList());
 	}
 	
-	
-	@Override
-	public String removeChatRoom(ChatRoomRemoveParams removeChatRoom) {
-		String chatRoomId = removeChatRoom.getChatRoomId();
-		chatRoomRepository.findByChatRoomId(chatRoomId).ifPresent(chatRoom ->{
-			List<Long> chatRoomMembersId = chatRoom.getChatRoomMembersId();
-			removeChatRoomFromUser(chatRoomMembersId, chatRoomId);
-			String id = chatRoom.getId();
-			chatRoomRepository.deleteById(id);
-		});
-		return chatRoomId;
+	private List<UserCredentials> mapChatRoomMembersResponse(List<Member> member) {
+		return member.stream().map(memberInIt -> {
+			User user = userDetailsRepository.findByUserId(memberInIt.getUserId().longValue());
+			UserCredentials credentials = new UserCredentials(user.getUserId(), user.getUserProfilePicture(),user.getUsername());
+			credentials.setIsCreator(memberInIt.isCreator());
+			return credentials;
+		}).collect(Collectors.toList());
 	}
-
 }
