@@ -1,9 +1,6 @@
 package com.scaffold.chat.datatransfer;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.scaffold.security.domains.UserCredentials;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ChatRoomResponse {
@@ -11,8 +8,7 @@ public class ChatRoomResponse {
 	private String chatRoomId;
 	private String chatRoomName;
 	private String roomAccessKey;
-	private List<UserCredentials> members;
-	private UserCredentials creator;
+	private int totalMembers;
 	
 	public String getChatRoomId() {
 		return chatRoomId;
@@ -32,17 +28,12 @@ public class ChatRoomResponse {
 	public void setRoomAccessKey(String roomAccessKey) {
 		this.roomAccessKey = roomAccessKey;
 	}
-	public List<UserCredentials> getMembers() {
-		return members;
+	public int getTotalMembers() {
+		return totalMembers;
 	}
-	public void setMembers(List<UserCredentials> members) {
-		this.members = members;
+	public void setTotalMembers(int totalMembers) {
+		this.totalMembers = totalMembers;
 	}
-	public UserCredentials getCreator() {
-		return creator;
-	}
-	public void setCreator(UserCredentials creator) {
-		this.creator = creator;
-	}
+	
 	
 }
