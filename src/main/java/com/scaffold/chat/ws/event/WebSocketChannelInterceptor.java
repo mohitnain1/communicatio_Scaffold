@@ -135,11 +135,11 @@ public class WebSocketChannelInterceptor implements ChannelInterceptor {
 		if(accessor.getDestination().startsWith("/app/chat")) {
 			String chatRoomId = accessor.getDestination().replace("/app/chat.", "");
 			chatRoomRepository.findByChatRoomId(chatRoomId).ifPresent(chatRoom ->{				
-				List<Long> chatRoomMembersId = chatRoom.getChatRoomMembersId();
-				chatRoomMembersId.forEach(userId->{
-					String destinationToNotify = String.format(Destinations.MESSGE_EVENT_NOTIFICATION.getPath(), userId);
-					template.convertAndSend(destinationToNotify, senderData);
-				});
+				//List<Long> chatRoomMembersId = chatRoom.getChatRoomMembersId();
+//				chatRoomMembersId.forEach(userId->{
+//					String destinationToNotify = String.format(Destinations.MESSGE_EVENT_NOTIFICATION.getPath(), userId);
+//					template.convertAndSend(destinationToNotify, senderData);
+//				});
 			});
 		}
 	}
