@@ -1,20 +1,27 @@
 package com.scaffold.chat.ws.event;
 
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
 
 import com.scaffold.chat.model.ChatPayload;
+import com.scaffold.chat.model.Member;
 import com.scaffold.chat.model.MessageStore;
+import com.scaffold.chat.repository.ChatRoomRepository;
 import com.scaffold.chat.repository.MessageStoreRepository;
 import com.scaffold.security.domains.UserCredentials;
+import com.scaffold.web.util.Destinations;
 import com.scaffold.web.util.SimpleIdGenerator;
 
 @Component
@@ -24,6 +31,9 @@ public class MessageEventHandler {
 	
 	private static final Logger log = LoggerFactory.getLogger(MessageEventHandler.class);
 	private final SimpleIdGenerator idGenerator = new SimpleIdGenerator();
+	
+	@Autowired ChatRoomRepository chatRoomRepository;
+	@Autowired SimpMessagingTemplate template;
 	
 	@Autowired
 	public MessageEventHandler(MessageStoreRepository messageStoreRepository) {
@@ -105,5 +115,27 @@ public class MessageEventHandler {
 	
 	public StompHeaderAccessor getHeaderAccessor(Message<?> message) {
 		return StompHeaderAccessor.wrap(message);
+	}
+	
+	public void newMessageEvent(com.scaffold.chat.model.Message messagePayload, UserCredentials sender) {
+		new Thread(() -> {
+			Map<String, Object> senderData = new HashMap<String, Object>();
+			senderData.put("id", messagePayload.getId());
+			senderData.put("sender", sender);
+			senderData.put("content", messagePayload.getContent());
+			senderData.put("sendingTime", new Date().getTime());
+			System.out.println(senderData);
+			if(messagePayload.getDestination().startsWith("/app/chat")) {
+				String chatRoomId = messagePayload.getDestination().replace("/app/chat.", "");
+				chatRoomRepository.findByChatRoomId(chatRoomId).ifPresent(chatRoom ->{				
+					List<Long> chatRoomMembersId = chatRoom.getMembers().stream().map(Member::getUserId).collect(Collectors.toList());
+					chatRoomMembersId.forEach(userId->{
+						senderData.put("chatRoomName", chatRoom.getChatRoomName());
+						String destinationToNotify = String.format(Destinations.MESSGE_EVENT_NOTIFICATION.getPath(), userId);
+						template.convertAndSend(destinationToNotify, senderData);
+					});
+				});
+			}
+		}).start();
 	}
 }
