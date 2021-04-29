@@ -1,36 +1,25 @@
 package com.scaffold.chat.ws.event;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.util.MultiValueMap;
 
-import com.scaffold.chat.model.ChatPayload;
 import com.scaffold.chat.model.User;
-import com.scaffold.chat.repository.ChatRoomRepository;
 import com.scaffold.chat.repository.UsersDetailRepository;
 import com.scaffold.security.domains.UserCredentials;
 import com.scaffold.security.domains.UserEvent;
 import com.scaffold.security.domains.UserSessionRepo;
-import com.scaffold.web.util.Destinations;
-import com.scaffold.web.util.SimpleIdGenerator;
 
 public class WebSocketChannelInterceptor implements ChannelInterceptor {
 	
@@ -38,16 +27,9 @@ public class WebSocketChannelInterceptor implements ChannelInterceptor {
 	final UserSessionRepo userSessions= UserSessionRepo.getInstance();
 	 
 	private UsersDetailRepository userDetailsRepository;
-	public ChatRoomRepository chatRoomRepository;
 	
-	@Autowired public SimpMessagingTemplate template;
-
-	private final MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
-
-	private final SimpleIdGenerator idGenerator = new SimpleIdGenerator();
-	public WebSocketChannelInterceptor(UsersDetailRepository usersDetailRepository, ChatRoomRepository chatRoomRepository) {
+	public WebSocketChannelInterceptor(UsersDetailRepository usersDetailRepository) {
 		this.userDetailsRepository = usersDetailRepository;
-		this.chatRoomRepository= chatRoomRepository;
 	}
 	
 	@Override
@@ -59,19 +41,6 @@ public class WebSocketChannelInterceptor implements ChannelInterceptor {
 			handleSessionDisconnect(message, accessor);
 		}
 		return message;
-	}
-	
-	@Override
-	public void postSend(Message<?> message, MessageChannel channel, boolean sent ) {
-		StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-		if (accessor.getCommand().equals(StompCommand.SEND)) {
-			newMessageEvent(message, accessor);
-		}
-	}
-
-	@Override
-	public Message<?> postReceive(Message<?> message, MessageChannel channel) {
-		return ChannelInterceptor.super.postReceive(message, channel);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -123,25 +92,4 @@ public class WebSocketChannelInterceptor implements ChannelInterceptor {
 		userSessions.removeParticipant(sessionId);
 		log.info("The user disconnected {}", logout);
 	}
-	
-	private void newMessageEvent(Message<?> message, StompHeaderAccessor accessor) {
-		ChatPayload messagePayload = (ChatPayload)converter.fromMessage(message, ChatPayload.class);
-		Map<String, Object> senderData = new HashMap<String, Object>();
-		senderData.put("senderId", messagePayload.getSenderId());
-		senderData.put("senderName", accessor.getUser().getName());
-		senderData.put("content", messagePayload.getContent());
-		senderData.put("sendingTime", new Date().getTime());
-		System.out.println(senderData);
-		if(accessor.getDestination().startsWith("/app/chat")) {
-			String chatRoomId = accessor.getDestination().replace("/app/chat.", "");
-			chatRoomRepository.findByChatRoomId(chatRoomId).ifPresent(chatRoom ->{				
-				//List<Long> chatRoomMembersId = chatRoom.getChatRoomMembersId();
-//				chatRoomMembersId.forEach(userId->{
-//					String destinationToNotify = String.format(Destinations.MESSGE_EVENT_NOTIFICATION.getPath(), userId);
-//					template.convertAndSend(destinationToNotify, senderData);
-//				});
-			});
-		}
-	}
-	
 }

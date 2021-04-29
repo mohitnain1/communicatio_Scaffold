@@ -24,6 +24,7 @@ public class WebSocketController {
 	public void chatRoom(@DestinationVariable String chatRoomId, Message<ChatPayload> message) {
 		com.scaffold.chat.model.Message savedMessage = messageEventHandler
 				.saveMessage(message.getPayload(), messageEventHandler.getHeaderAccessor(message));
+		messageEventHandler.newMessageEvent(savedMessage, messageEventHandler.getCredentials(message));
 		if(Objects.nonNull(savedMessage)) {
 			simpMessagingTemplate.convertAndSend("/topic/conversations."+chatRoomId, messageEventHandler
 					.getResponseForClient(messageEventHandler.getCredentials(message), savedMessage));
