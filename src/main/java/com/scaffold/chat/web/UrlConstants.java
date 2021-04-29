@@ -17,5 +17,5 @@ public class UrlConstants {
 	public static final String GET_USER_ROOM = PREFIX + "/user/chatrooms";
 	public static final String UPDATE_MEMBERS = PREFIX + "/members";
 	public static final String CREATE_CHATROOM = PREFIX +"/chatRoom";
-	public static final String REMOVE_CHATROOM = PREFIX +"/chatRoom";
+	public static final String REMOVE_CHATROOM_MEMBERS = PREFIX +"/chatRoom/removeMembers";
 }

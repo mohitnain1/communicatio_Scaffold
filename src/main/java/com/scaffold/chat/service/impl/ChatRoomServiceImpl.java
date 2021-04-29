@@ -72,8 +72,10 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		response.put("creator", chatRoomMembers.stream().filter(member -> member.getIsCreator() == true).findFirst().get());
 		
 		chatRoom.getMembers().forEach(member -> {
-			String destination = String.format(Destinations.INVITATION.getPath(), member.getUserId());
-			simpMessagingTemplate.convertAndSend(destination ,response);
+			if(!member.isCreator()) {
+				String destination = String.format(Destinations.INVITATION.getPath(), member.getUserId());
+				simpMessagingTemplate.convertAndSend(destination ,response);
+			}
 		});
 	}
 
@@ -105,10 +107,12 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	@Override
 	public List<UserCredentials> addMembers(String chatRoomId, List<UserCredentials> members) {
 		return chatRoomRepository.findByChatRoomId(chatRoomId).map(chatRoom -> {
-			chatRoom.getMembers().clear();
 			saveOrUpdateUsers(members);
-			List<Member> newMembers = userCredentialToMemberMapper(members);			
-			chatRoom.setMembers(newMembers);
+			List<Member> newMembers = userCredentialToMemberMapper(members);
+			List<Member> existingMembers = chatRoom.getMembers();
+			existingMembers.addAll(newMembers);
+			List<Member> updatedUniqueList = existingMembers.stream().distinct().collect(Collectors.toList());
+			chatRoom.setMembers(updatedUniqueList);
 			chatRoom = chatRoomRepository.save(chatRoom);
 			sendInviteToUsers(chatRoom, members);
 			LOGGER.info("Members added successfully....");
@@ -164,5 +168,17 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 			credentials.setIsCreator(memberInIt.isCreator());
 			return credentials;
 		}).collect(Collectors.toList());
+	}
+
+	@Override
+	public List<UserCredentials> removeMembers(String chatRoomId, List<UserCredentials> members) {
+		return chatRoomRepository.findByChatRoomId(chatRoomId).map(chatRoom -> {
+			List<Member> memberToRemove = userCredentialToMemberMapper(members);
+			List<Member> existingMembers = chatRoom.getMembers();
+			List<Member> updatedMemberList = existingMembers.stream().filter(memberInIt -> !memberToRemove.contains(memberInIt)).collect(Collectors.toList());
+			chatRoom.setMembers(updatedMemberList);
+			chatRoomRepository.save(chatRoom);
+			return mapChatRoomMembersResponse(chatRoom.getMembers());
+		}).orElseGet(ArrayList::new);
 	}
 }
