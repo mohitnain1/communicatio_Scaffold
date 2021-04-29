@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.scaffold.chat.datatransfer.ChatRoomCreationParams;
@@ -33,13 +32,14 @@ public class ChatRoomController {
 	
 	@PostMapping(UrlConstants.CREATE_CHATROOM)
 	public ResponseEntity<Object> createChatRoom(@RequestBody ChatRoomCreationParams params) {
-		ChatRoomResponse chatRoomId = chatRoomServices.createChatRoom(params.getChatRoomName(),
-				params.getCreator(), params.getMembers());
-		return Response.generateResponse(HttpStatus.CREATED, chatRoomId, "Chatroom Created", true);
+		ChatRoomResponse response = chatRoomServices.createChatRoom(params.getChatRoomName(), params.getMembers());
+		if(Objects.isNull(response)) {
+			return Response.generateResponse(HttpStatus.CREATED, null, "Chatroom name already exists.", false);
+		}
+		return Response.generateResponse(HttpStatus.CREATED, response, "Chatroom Created", true);
 	}
 	
 	@PutMapping(UrlConstants.UPDATE_MEMBERS)
-	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<Object> addMembers(@RequestBody ChatRoomUpdateParams params) {
 		List<UserCredentials> members = chatRoomServices.addMembers(params.getChatRoomId(), params.getMembers());
 		if(!members.isEmpty()) {

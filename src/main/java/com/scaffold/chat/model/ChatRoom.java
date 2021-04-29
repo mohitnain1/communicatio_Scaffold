@@ -18,19 +18,16 @@ public class ChatRoom {
 	private LocalDateTime chatRoomLastConversationDate;
 	
 	private String roomAccessKey;
-	
-	private long chatRoomCreatorId;
-	private List<Long> chatRoomMembersId;
+	private List<Member> members;
 	
 	@DBRef(lazy = true)
 	private MessageStore messageStore;
 	
 	public ChatRoom() {}
 	
-	public ChatRoom(String chatRoomName, long chatRoomCreatorId, List<Long> chatRoomMembersId) {
+	public ChatRoom(String chatRoomName, List<Member> members) {
 		this.chatRoomName = chatRoomName;
-		this.chatRoomCreatorId = chatRoomCreatorId;
-		this.chatRoomMembersId = chatRoomMembersId;
+		this.members = members;
 	}
 
 	public String getId() {
@@ -81,20 +78,20 @@ public class ChatRoom {
 		this.chatRoomLastConversationDate = chatRoomLastConversationDate;
 	}
 
-	public long getChatRoomCreatorId() {
-		return chatRoomCreatorId;
+	public String getRoomAccessKey() {
+		return roomAccessKey;
 	}
 
-	public void setChatRoomCreatorId(long chatRoomCreatorId) {
-		this.chatRoomCreatorId = chatRoomCreatorId;
+	public void setRoomAccessKey(String roomAccessKey) {
+		this.roomAccessKey = roomAccessKey;
 	}
 
-	public List<Long> getChatRoomMembersId() {
-		return chatRoomMembersId;
+	public List<Member> getMembers() {
+		return members;
 	}
 
-	public void setChatRoomMembersId(List<Long> chatRoomMembersId) {
-		this.chatRoomMembersId = chatRoomMembersId;
+	public void setMembers(List<Member> members) {
+		this.members = members;
 	}
 
 	public MessageStore getMessageStore() {
@@ -103,13 +100,5 @@ public class ChatRoom {
 
 	public void setMessageStore(MessageStore messageStore) {
 		this.messageStore = messageStore;
-	}
-
-	public String getRoomAccessKey() {
-		return roomAccessKey;
-	}
-
-	public void setRoomAccessKey(String bs) {
-		this.roomAccessKey = bs;
 	}
 }

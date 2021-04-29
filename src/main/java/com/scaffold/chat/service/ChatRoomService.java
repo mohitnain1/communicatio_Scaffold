@@ -10,10 +10,10 @@ import com.scaffold.security.domains.UserCredentials;
 @Service
 public interface ChatRoomService {
 	
-	public ChatRoomResponse createChatRoom(String chatRoomName, UserCredentials chatRoomCreator, List<UserCredentials> chatRoomMembersId);
-	
+	public ChatRoomResponse createChatRoom(String chatRoomName, List<UserCredentials> chatRoomMembersId);
+		
 	public List<UserCredentials> addMembers(String chatRoomId, List<UserCredentials> members);
 		
-	public List<ChatRoomResponse> userChatRooms(long userId);
+	public List<ChatRoomResponse> userChatRooms(long userId);	
 	
 }

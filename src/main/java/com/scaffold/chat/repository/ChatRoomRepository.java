@@ -11,5 +11,5 @@ import com.scaffold.chat.model.ChatRoom;
 public interface ChatRoomRepository extends MongoRepository<ChatRoom, String> {
 	
 	Optional<ChatRoom> findByChatRoomId(String chatRoomId);
-		
+	Optional<ChatRoom> findByChatRoomName(String chatRoomName);
 }

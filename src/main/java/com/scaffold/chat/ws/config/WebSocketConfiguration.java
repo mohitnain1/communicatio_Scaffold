@@ -8,16 +8,14 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
-import com.scaffold.chat.repository.MessageStoreRepository;
 import com.scaffold.chat.repository.UsersDetailRepository;
-import com.scaffold.chat.ws.event.MessageEventHandler;
+import com.scaffold.chat.ws.event.WebSocketChannelInterceptor;
 
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
 	
 	@Autowired UsersDetailRepository usersDetailRepository;
-	@Autowired MessageStoreRepository messageStoreRepository;
 	
 	@Override
 	public void registerStompEndpoints(StompEndpointRegistry registry) {
@@ -33,6 +31,6 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
 
 	@Override
 	public void configureClientInboundChannel(ChannelRegistration registration) {
-		registration.interceptors(new MessageEventHandler(usersDetailRepository, messageStoreRepository));
+		registration.interceptors(new WebSocketChannelInterceptor(usersDetailRepository));
 	}
 }
