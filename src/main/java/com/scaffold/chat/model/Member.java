@@ -1,7 +1,7 @@
 package com.scaffold.chat.model;
 
 public class Member {
-	
+
 	private Long userId;
 	private boolean isCreator;
 	
@@ -26,5 +26,26 @@ public class Member {
 		this.isCreator = isCreator;
 	}
 	
-	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + (isCreator ? 1231 : 1237);
+		result = prime * result + ((userId == null) ? 0 : userId.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Member other = (Member) obj;
+		if (!userId.equals(other.userId))
+			return false;
+		return true;
+	}
 }
