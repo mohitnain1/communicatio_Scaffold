@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponents;
@@ -40,6 +41,8 @@ public class ChatFileUploadServiceImpl implements ChatFileUploadService {
 
 	@Autowired
 	private AmazonS3 amazonS3;
+	
+	@Autowired SimpMessagingTemplate simpMessagingTemplate;
 
 	@Value("${cloud.aws.bucket.name}")
 	private String bucketName;
@@ -77,7 +80,11 @@ public class ChatFileUploadServiceImpl implements ChatFileUploadService {
 		Message savedMessage = messageEventHandler.saveFileUploadParam(payload);
 		User user = userDetailsRepository.findByUserId(fileParms.getSenderId());
 		UserCredentials sender = new UserCredentials(user.getUserId(), user.getUserProfilePicture(), user.getUsername());
+		//Upload Message Notification in chatrooms
 		messageEventHandler.newMessageEvent(savedMessage, sender);
+		//Send Messages in chatroom.
+		simpMessagingTemplate.convertAndSend("/topic/conversations."+fileParms.getChatRoomId(), messageEventHandler
+				.getResponseForClient(sender, savedMessage));
 		return messageEventHandler.getResponseForClient(sender, savedMessage);
 	}
 
