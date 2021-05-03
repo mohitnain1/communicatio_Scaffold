@@ -1,5 +1,6 @@
 package com.scaffold.chat.controller;
 
+import java.util.Map;
 import java.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
@@ -29,11 +30,11 @@ public class ChatFileController {
 
 	@PostMapping(UrlConstants.FILE_UPLOAD)
 	public ResponseEntity<Object> upload(@RequestBody FileUploadParms fileUpload, HttpServletRequest request) {
-		String file = chatFileService.uploadFile(fileUpload, request);
-		if (Objects.isNull(file)) {
+		Map<String, Object> data = chatFileService.uploadFile(fileUpload, request);
+		if (Objects.isNull(data) || data.isEmpty()) {
 			return Response.generateResponse(HttpStatus.OK, null, MessageConstants.FILE_UPLOADED_ERROR, false);
 		}
-		return Response.generateResponse(HttpStatus.OK, file, MessageConstants.FILE_UPLOADED, true);
+		return Response.generateResponse(HttpStatus.OK, data, MessageConstants.FILE_UPLOADED, true);
 	}
 
 	@GetMapping(UrlConstants.FILE_DOWNLOAD)
@@ -44,7 +45,6 @@ public class ChatFileController {
 		if (Objects.isNull(data)) {
 			return Response.generateResponse(HttpStatus.OK, null, MessageConstants.FILE_DOWNLOADING_ERROR, false);
 		}
-		//return Response.generateResponse(HttpStatus.OK, file, "file downloading successfully", true);
 		return ResponseEntity.ok().contentLength(data.length).header("content-type", "appilication/octet-stream")
 				.header("content-disposition", "attachment; filename=\"" + fileName + "\"").body(resource);
 	}
