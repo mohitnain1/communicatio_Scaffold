@@ -18,4 +18,12 @@ public class UrlConstants {
 	public static final String UPDATE_MEMBERS = PREFIX + "/members";
 	public static final String CREATE_CHATROOM = PREFIX +"/chatRoom";
 	public static final String REMOVE_CHATROOM_MEMBERS = PREFIX +"/chatRoom/removeMembers";
+	
+	public static final String GET_ALL_MESSAGES = PREFIX +"/messages";
+	
+	
+	public static final String FILE_UPLOAD  = PREFIX +"/upload";
+	public static final String FILE_DOWNLOAD  = PREFIX +"/download/{fileName}";
+	public static final String FILE_DELETE  = PREFIX +"/delete/{fileName}";
+	
 }

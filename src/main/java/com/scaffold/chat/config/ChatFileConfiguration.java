@@ -11,7 +11,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
 @Configuration
-public class AWSS3Configuration {
+public class ChatFileConfiguration {
 	
 	@Value("${cloud.aws.credentials.access-key}")
 	private String accessKeyId;
