@@ -79,6 +79,7 @@ public class MessageServiceImpl implements MessageService {
 		res.put("sender", new UserCredentials(user.getUserId(), user.getUserProfilePicture(), user.getUsername()));
 		res.put("sendingTime", Timestamp.valueOf(message.getSendingTime()).getTime());
 		res.put("id", message.getId());
+		res.put("contentType", message.getContentType() == null ? "Text" : message.getContentType());
 		return res;
 	}
 
