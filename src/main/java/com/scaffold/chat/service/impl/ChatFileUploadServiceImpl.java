@@ -3,8 +3,14 @@ package com.scaffold.chat.service.impl;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -32,13 +38,15 @@ import com.scaffold.chat.repository.UsersDetailRepository;
 import com.scaffold.chat.service.ChatFileUploadService;
 import com.scaffold.chat.ws.event.MessageEventHandler;
 import com.scaffold.security.domains.UserCredentials;
+import com.scaffold.web.util.FileData;
 import com.scaffold.web.util.MessageEnum;
 
 @Service
 public class ChatFileUploadServiceImpl implements ChatFileUploadService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChatFileUploadServiceImpl.class);
-
+	private final ExecutorService exec = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+	
 	@Autowired
 	private AmazonS3 amazonS3;
 	
@@ -53,39 +61,52 @@ public class ChatFileUploadServiceImpl implements ChatFileUploadService {
 
 	@Override
 	@Async
-	public Map<String, Object> uploadFile(FileUploadParms fileParms, HttpServletRequest request) {
+	public List<Map<String, Object>> uploadFile(FileUploadParms fileParms, HttpServletRequest request) {
 		try {
-			String file = fileParms.getFileData().split(",")[1];
-			byte[] fileData = java.util.Base64.getDecoder().decode(file.getBytes());
-			InputStream data = new ByteArrayInputStream(fileData);
-			
-			ObjectMetadata metadata = new ObjectMetadata();
-			metadata.setContentLength(fileData.length);
-			
-			uniqueFileName = System.currentTimeMillis() + "-" + 
-			UUID.randomUUID().toString().substring(0, 3) + "-"+ fileParms.getFileName();
-			
-			new Thread(() -> {amazonS3.putObject(bucketName, uniqueFileName, data, metadata);}).start();
-			LOGGER.info("File uploading successfully...");
+			List<FileData> files = fileParms.getFiles();
+			List<String> downloadsLinks = new ArrayList<>();
+			for (FileData file : files) {
+				String base64Data = file.getFileData().split(",")[1];
+				byte[] fileData = Base64.getDecoder().decode(base64Data.getBytes());
+				InputStream data = new ByteArrayInputStream(fileData);
+
+				ObjectMetadata metadata = new ObjectMetadata();
+				metadata.setContentLength(fileData.length);
+
+				uniqueFileName = System.currentTimeMillis() + "-" + UUID.randomUUID().toString().substring(0, 3) + "-"+ file.getFileName();
+				downloadsLinks.add(generateDownloadLink(request, uniqueFileName));
+				exec.submit(() -> {
+					LOGGER.info("Uploading {} ", uniqueFileName);
+					amazonS3.putObject(bucketName, uniqueFileName, data, metadata);
+					LOGGER.info("Finished uploading file {}", uniqueFileName);
+				});
+			}
+			return saveMessageAndReturnContent(downloadsLinks, fileParms);
 		} catch (AmazonServiceException ex) {
 			LOGGER.error("Error= {} while uploading file.", ex.getMessage());
+			return Collections.emptyList();
+		} finally {
+			exec.shutdown();
 		}
-		return saveMessageAndReturnContent(generateDownloadLink(request, uniqueFileName), fileParms);
 	}
 
-	private Map<String, Object> saveMessageAndReturnContent(String generateDownloadLink, FileUploadParms fileParms) {
-		String destination = "/app/chat." + fileParms.getChatRoomId();
-		ChatPayload payload = new ChatPayload(fileParms.getSenderId(), generateDownloadLink, destination);
-		payload.setContentType(MessageEnum.IMAGE.getValue());
-		Message savedMessage = messageEventHandler.saveFileUploadParam(payload);
+	private List<Map<String, Object>> saveMessageAndReturnContent(List<String> downloadsLinks, FileUploadParms fileParms) {
+		List<Map<String, Object>> response = new ArrayList<>();
 		User user = userDetailsRepository.findByUserId(fileParms.getSenderId());
 		UserCredentials sender = new UserCredentials(user.getUserId(), user.getUserProfilePicture(), user.getUsername());
-		//Upload Message Notification in chatrooms
-		messageEventHandler.newMessageEvent(savedMessage, sender);
-		//Send Messages in chatroom.
-		simpMessagingTemplate.convertAndSend("/topic/conversations."+fileParms.getChatRoomId(), messageEventHandler
-				.getResponseForClient(sender, savedMessage));
-		return messageEventHandler.getResponseForClient(sender, savedMessage);
+		String destination = "/app/chat." + fileParms.getChatRoomId();
+		for(String link  : downloadsLinks) {
+			ChatPayload payload = new ChatPayload(fileParms.getSenderId(), link, destination);
+			payload.setContentType(MessageEnum.IMAGE.getValue());
+			Message savedMessage = messageEventHandler.saveFileUploadParam(payload);
+			//Upload Message Notification in chatrooms
+			messageEventHandler.newMessageEvent(savedMessage, sender);
+			//Send Messages in chatroom.
+			simpMessagingTemplate.convertAndSend("/topic/conversations."+fileParms.getChatRoomId(), messageEventHandler
+					.getResponseForClient(sender, savedMessage));
+			response.add(messageEventHandler.getResponseForClient(sender, savedMessage));
+		}
+		return response;
 	}
 
 	private String generateDownloadLink(HttpServletRequest request, String fileName) {
