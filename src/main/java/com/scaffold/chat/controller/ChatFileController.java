@@ -1,5 +1,6 @@
 package com.scaffold.chat.controller;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -30,9 +31,9 @@ public class ChatFileController {
 
 	@PostMapping(UrlConstants.FILE_UPLOAD)
 	public ResponseEntity<Object> upload(@RequestBody FileUploadParms fileUpload, HttpServletRequest request) {
-		Map<String, Object> data = chatFileService.uploadFile(fileUpload, request);
-		if (Objects.isNull(data) || data.isEmpty()) {
-			return Response.generateResponse(HttpStatus.OK, null, MessageConstants.FILE_UPLOADED_ERROR, false);
+		List<Map<String, Object>> data = chatFileService.uploadFile(fileUpload, request);
+		if (data.isEmpty()) {
+			return Response.generateResponse(HttpStatus.EXPECTATION_FAILED, null, MessageConstants.FILE_UPLOADED_ERROR, false);
 		}
 		return Response.generateResponse(HttpStatus.OK, data, MessageConstants.FILE_UPLOADED, true);
 	}
