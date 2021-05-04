@@ -45,7 +45,7 @@ import com.scaffold.web.util.MessageEnum;
 public class ChatFileUploadServiceImpl implements ChatFileUploadService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChatFileUploadServiceImpl.class);
-	private final ExecutorService exec = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+	private final ExecutorService exec = Executors.newFixedThreadPool(5);
 	
 	@Autowired
 	private AmazonS3 amazonS3;
