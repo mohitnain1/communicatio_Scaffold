@@ -7,7 +7,24 @@ public class ChatPayload {
 	private long sendingTime;
 	private String destination;
 	private String username;
+	private String contentType;
 	
+	public ChatPayload() {} 
+	
+	public ChatPayload(long senderId, String content, String destination) {
+		this.senderId = senderId;
+		this.content = content;
+		this.destination = destination;
+	}
+	
+	public String getContentType() {
+		return contentType;
+	}
+
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
+	}
+
 	public long getSenderId() {
 		return senderId;
 	}

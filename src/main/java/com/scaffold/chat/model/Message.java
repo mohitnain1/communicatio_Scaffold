@@ -8,8 +8,17 @@ public class Message {
 	private Long senderId;
 	private String content;
 	private LocalDateTime sendingTime;
+	private String contentType;
 	private String destination;
 	
+	public String getContentType() {
+		return contentType;
+	}
+
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
+	}
+
 	public String getId() {
 		return id;
 	}

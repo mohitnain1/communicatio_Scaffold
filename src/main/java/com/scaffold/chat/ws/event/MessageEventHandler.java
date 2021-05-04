@@ -56,6 +56,12 @@ public class MessageEventHandler {
 		return saveUserMessageInDatabase(messagePayload);
 	}
 	
+	public com.scaffold.chat.model.Message saveFileUploadParam(ChatPayload messagePayload) {
+		messagePayload.setSendingTime(System.currentTimeMillis());
+		log.info("Got Message {}", messagePayload.toString());
+		return saveUserMessageInDatabase(messagePayload);
+	}
+	
 	/**
 	 * This method gets called whenever user sends any message
 	 * to any destination by {@link #onMessage(Message, StompHeaderAccessor)}
@@ -91,6 +97,7 @@ public class MessageEventHandler {
 		messageDetail.setDestination(messagePayload.getDestination());
 		messageDetail.setSenderId(messagePayload.getSenderId());
 		messageDetail.setContent(messagePayload.getContent());
+		messageDetail.setContentType(messagePayload.getContentType() == null ? "Text" : messagePayload.getContentType());
 		messageDetail.setSendingTime(new Timestamp(messagePayload.getSendingTime()).toLocalDateTime());
 		messageDetail.setId(idGenerator.generateRandomId());
 		return messageDetail;
@@ -110,6 +117,7 @@ public class MessageEventHandler {
 		chatMessage.put("sender", sender);
 		chatMessage.put("sendingTime", Timestamp.valueOf(body.getSendingTime()).getTime());
 		chatMessage.put("id", body.getId());
+		chatMessage.put("contentType", body.getContentType());
 		return chatMessage;
 	}
 	
@@ -128,7 +136,8 @@ public class MessageEventHandler {
 			if(messagePayload.getDestination().startsWith("/app/chat")) {
 				String chatRoomId = messagePayload.getDestination().replace("/app/chat.", "");
 				chatRoomRepository.findByChatRoomId(chatRoomId).ifPresent(chatRoom ->{				
-					List<Long> chatRoomMembersId = chatRoom.getMembers().stream().map(Member::getUserId).collect(Collectors.toList());
+					List<Long> chatRoomMembersId = chatRoom.getMembers().stream().map(Member::getUserId)
+							.filter(memberId -> !memberId.equals(sender.getUserId())).collect(Collectors.toList());
 					chatRoomMembersId.forEach(userId->{
 						senderData.put("chatRoomName", chatRoom.getChatRoomName());
 						String destinationToNotify = String.format(Destinations.MESSGE_EVENT_NOTIFICATION.getPath(), userId);
