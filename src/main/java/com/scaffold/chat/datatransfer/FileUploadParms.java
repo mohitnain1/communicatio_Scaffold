@@ -1,11 +1,14 @@
 package com.scaffold.chat.datatransfer;
 
+import java.util.List;
+
+import com.scaffold.web.util.FileData;
+
 public class FileUploadParms {
 	
 	private long senderId;
 	private String chatRoomId;
-	private String fileName;
-	private String fileData; //data
+	private List<FileData> files;
 	
 	public long getSenderId() {
 		return senderId;
@@ -19,25 +22,14 @@ public class FileUploadParms {
 	public void setChatRoomId(String chatRoomId) {
 		this.chatRoomId = chatRoomId;
 	}
-	public String getFileName() {
-		return fileName;
+	public List<FileData> getFiles() {
+		return files;
 	}
-	public void setFileName(String fileName) {
-		this.fileName = fileName;
+	public void setFiles(List<FileData> files) {
+		this.files = files;
 	}
-	public String getFileData() {
-		return fileData;
-	}
-	public void setFileData(String fileData) {
-		this.fileData = fileData;
-	}
-	
 	@Override
 	public String toString() {
-		return "FileUploadParms [senderId=" + senderId + ", chatRoomId=" + chatRoomId + ", fileName=" + fileName
-				+ ", fileData=" + fileData + "]";
+		return "FileUploadParms [senderId=" + senderId + ", chatRoomId=" + chatRoomId + ", files=" + files + "]";
 	}
-	
-	
-	
 }
