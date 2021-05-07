@@ -35,9 +35,9 @@ public class WebSocketChannelInterceptor implements ChannelInterceptor {
 	@Override
 	public Message<?> preSend(Message<?> message, MessageChannel channel) {
 		StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-		if (accessor.getCommand().equals(StompCommand.CONNECT)) {
+		if (!Objects.isNull(accessor.getCommand()) && accessor.getCommand().equals(StompCommand.CONNECT)) {
 			handleSessionConnected(message, accessor);
-		} else if (accessor.getCommand().equals(StompCommand.DISCONNECT)) {
+		} else if (!Objects.isNull(accessor.getCommand()) && accessor.getCommand().equals(StompCommand.DISCONNECT)) {
 			handleSessionDisconnect(message, accessor);
 		}
 		return message;
@@ -50,6 +50,7 @@ public class WebSocketChannelInterceptor implements ChannelInterceptor {
 		List<String> userData = nativeHeaders.get("userId");
 		List<Long> getUserId = userData.stream().map(Long::parseLong).collect(Collectors.toList());
 		UserCredentials credentials = new UserCredentials(getUserId.get(0), nativeHeaders.get("imageLink").get(0), nativeHeaders.get("username").get(0));
+		credentials.setEmail(nativeHeaders.getFirst("email"));
 		userConnectEventHandler(message, accessor, nativeHeaders, credentials);
 		accessor.setUser(credentials);
 		saveOrUpdateUserInDatabase(credentials);
@@ -64,6 +65,9 @@ public class WebSocketChannelInterceptor implements ChannelInterceptor {
 			if (!credentials.getUsername().equals("")) {
 			   user.setUsername(credentials.getUsername());
 			}
+			if (!credentials.getEmail().equals("")) {
+				user.setEmail(credentials.getEmail());
+			}
 			userDetailsRepository.save(user);
 		}
 		else {
@@ -72,6 +76,7 @@ public class WebSocketChannelInterceptor implements ChannelInterceptor {
 			newUser.setUsername(credentials.getUsername());
 			newUser.setUserProfilePicture(credentials.getImageLink());
 			newUser.setUserLastSeen(LocalDateTime.now());
+			newUser.setEmail(credentials.getEmail());
 			log.info("Saved new User");
 			userDetailsRepository.save(newUser);
 		}
