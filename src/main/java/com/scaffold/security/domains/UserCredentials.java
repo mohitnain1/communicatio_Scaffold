@@ -10,6 +10,7 @@ public class UserCredentials implements Principal {
 	private long userId;
 	private String imageLink;
 	private String username;
+	private String email;
 	private Boolean isCreator = false;
 
 	public UserCredentials(long userId, String imageLink, String username) {
@@ -59,6 +60,14 @@ public class UserCredentials implements Principal {
 	public boolean equals(Object obj) {
 		UserCredentials cred = (UserCredentials) obj;
 		return this.userId == cred.getUserId();
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
 	}
 
 	@Override

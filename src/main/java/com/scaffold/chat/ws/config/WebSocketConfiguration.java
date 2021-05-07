@@ -10,23 +10,27 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 
 import com.scaffold.chat.repository.UsersDetailRepository;
 import com.scaffold.chat.ws.event.WebSocketChannelInterceptor;
+import com.scaffold.web.util.ScaffoldProperties;
 
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
 	
 	@Autowired UsersDetailRepository usersDetailRepository;
+	@Autowired ScaffoldProperties properties;
 	
 	@Override
 	public void registerStompEndpoints(StompEndpointRegistry registry) {
-		registry.addEndpoint("/ws").setAllowedOriginPatterns("*");
 		registry.addEndpoint("/chat/sockjs").setAllowedOriginPatterns("*").withSockJS();
 	}
 	
 	@Override
 	public void configureMessageBroker(MessageBrokerRegistry registry) {
-		registry.enableSimpleBroker("/topic", "/queue");
 		registry.setApplicationDestinationPrefixes("/app");
+		registry.enableStompBrokerRelay("/topic", "/queue").setSystemLogin(properties.getBrokerUsername())
+			.setSystemPasscode(properties.getBrokerPassword())
+			.setRelayHost(properties.getBrokerHostName())
+			.setRelayPort(properties.getBrokerPort());
 	}	
 
 	@Override

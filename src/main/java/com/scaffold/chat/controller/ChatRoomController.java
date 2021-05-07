@@ -37,7 +37,7 @@ public class ChatRoomController {
 	
 	@PutMapping(UrlConstants.UPDATE_MEMBERS)
 	public ResponseEntity<Object> addMembers(@RequestBody ChatRoomUpdateParams params) {
-		List<UserCredentials> members = chatRoomServices.addMembers(params.getChatRoomId(), params.getMembers());
+		List<UserCredentials> members = chatRoomServices.addMembers(params);
 		if(!members.isEmpty()) {
 			return Response.generateResponse(HttpStatus.CREATED, members, "Added or updated members", true);
 		}
@@ -57,13 +57,13 @@ public class ChatRoomController {
 		}
 	}
 	
-	@PutMapping(UrlConstants.REMOVE_CHATROOM_MEMBERS)
-	public ResponseEntity<Object> removeChatRoomMembers(@RequestBody ChatRoomUpdateParams params) {
-		List<UserCredentials> removeMembers = chatRoomServices.removeMembers(params.getChatRoomId(), params.getMembers());
-		if(!removeMembers.isEmpty()) {
-			return Response.generateResponse(HttpStatus.OK, removeMembers, "Members Removed", true);
-		} else {
-			return Response.generateResponse(HttpStatus.EXPECTATION_FAILED, null, "Unable to remove members.", false);
-		}
-	}
+//	@PutMapping(UrlConstants.REMOVE_CHATROOM_MEMBERS)
+//	public ResponseEntity<Object> removeChatRoomMembers(@RequestBody ChatRoomUpdateParams params) {
+//		List<UserCredentials> removeMembers = chatRoomServices.removeMembers(params.getChatRoomId(), params.getMembers());
+//		if(!removeMembers.isEmpty()) {
+//			return Response.generateResponse(HttpStatus.OK, removeMembers, "Members Removed", true);
+//		} else {
+//			return Response.generateResponse(HttpStatus.EXPECTATION_FAILED, null, "Unable to remove members.", false);
+//		}
+//	}
 }

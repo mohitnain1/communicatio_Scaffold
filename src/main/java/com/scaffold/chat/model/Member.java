@@ -27,6 +27,11 @@ public class Member {
 	}
 	
 	@Override
+	public String toString() {
+		return "Member [userId=" + userId + ", isCreator=" + isCreator + "]";
+	}
+
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;

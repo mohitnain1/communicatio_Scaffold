@@ -1,13 +1,9 @@
 package com.scaffold.chat.datatransfer;
 
-import java.util.List;
-
-import com.scaffold.security.domains.UserCredentials;
-
 public class ChatRoomUpdateParams {
 	
 	private String chatRoomId;
-	private List<UserCredentials> members;
+	private MemberAddOrRemoveRequest members;
 	
 	public String getChatRoomId() {
 		return chatRoomId;
@@ -15,10 +11,11 @@ public class ChatRoomUpdateParams {
 	public void setChatRoomId(String chatRoomId) {
 		this.chatRoomId = chatRoomId;
 	}
-	public List<UserCredentials> getMembers() {
+	public MemberAddOrRemoveRequest getMembers() {
 		return members;
 	}
-	public void setMembers(List<UserCredentials> members) {
+	public void setMembers(MemberAddOrRemoveRequest members) {
 		this.members = members;
 	}
+	
 }
