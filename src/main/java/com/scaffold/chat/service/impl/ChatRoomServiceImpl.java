@@ -14,6 +14,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +32,7 @@ import com.scaffold.chat.service.ChatRoomService;
 import com.scaffold.security.domains.UserCredentials;
 import com.scaffold.security.jwt.JwtUtil;
 import com.scaffold.web.util.Destinations;
+import com.scaffold.web.util.Response;
 
 @Service
 public class ChatRoomServiceImpl implements ChatRoomService {
@@ -46,10 +49,12 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	@Autowired private ObjectMapper mapper;
 
 	@Override
-	public ChatRoomResponse createChatRoom(String chatRoomName, List<UserCredentials> chatRoomMembers) {
+	public ResponseEntity<Object> createChatRoom(String chatRoomName, List<UserCredentials> chatRoomMembers) {
 		Optional<ChatRoom> existingChatRoom = chatRoomRepository.findByChatRoomName(chatRoomName);
 		if(existingChatRoom.isPresent()) {
-			return null;
+			ChatRoomResponse response = mapper.convertValue(existingChatRoom.get(), ChatRoomResponse.class);
+			response.setTotalMembers(existingChatRoom.get().getMembers().size());
+			return Response.generateResponse(HttpStatus.CONFLICT, response, "Chatroom name already exists.", false);
 		} else {
 			saveOrUpdateUsers(chatRoomMembers);	
 			
@@ -59,7 +64,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 			sendInviteToUsers(chatRoom, chatRoomMembers);
 			ChatRoomResponse response = mapper.convertValue(chatRoom, ChatRoomResponse.class);
 			response.setTotalMembers(chatRoom.getMembers().size());
-			return response;
+			return Response.generateResponse(HttpStatus.CREATED, response, "Chatroom Created", true);
 		}
 	}
 
