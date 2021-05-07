@@ -32,11 +32,7 @@ public class ChatRoomController {
 	
 	@PostMapping(UrlConstants.CREATE_CHATROOM)
 	public ResponseEntity<Object> createChatRoom(@RequestBody ChatRoomCreationParams params) {
-		ChatRoomResponse response = chatRoomServices.createChatRoom(params.getChatRoomName(), params.getMembers());
-		if(Objects.isNull(response)) {
-			return Response.generateResponse(HttpStatus.CREATED, null, "Chatroom name already exists.", false);
-		}
-		return Response.generateResponse(HttpStatus.CREATED, response, "Chatroom Created", true);
+		return chatRoomServices.createChatRoom(params.getChatRoomName(), params.getMembers());
 	}
 	
 	@PutMapping(UrlConstants.UPDATE_MEMBERS)
