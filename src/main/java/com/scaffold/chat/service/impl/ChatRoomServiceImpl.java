@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scaffold.chat.datatransfer.ChatRoomResponse;
+import com.scaffold.chat.datatransfer.ChatRoomUpdateParams;
 import com.scaffold.chat.model.ChatRoom;
 import com.scaffold.chat.model.Member;
 import com.scaffold.chat.model.MessageStore;
@@ -74,7 +75,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		response.put("chatRoomName", chatRoom.getChatRoomName());
 		response.put("roomAccessKey", chatRoom.getRoomAccessKey());
 		response.put("totalMembers", chatRoom.getMembers().size());
-		response.put("creator", chatRoomMembers.stream().filter(member -> member.getIsCreator() == true).findFirst().get());
+		response.put("creator", chatRoomMembers.stream().filter(member -> member.getIsCreator() == true).findAny().orElse(null));
 		
 		chatRoom.getMembers().forEach(member -> {
 			if(!member.isCreator()) {
@@ -110,21 +111,29 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	}
 
 	@Override
-	public List<UserCredentials> addMembers(String chatRoomId, List<UserCredentials> members) {
-		return chatRoomRepository.findByChatRoomId(chatRoomId).map(chatRoom -> {
-			saveOrUpdateUsers(members);
-			List<Member> newMembers = userCredentialToMemberMapper(members);
-			List<Member> existingMembers = chatRoom.getMembers();
-			existingMembers.addAll(newMembers);
-			List<Member> updatedUniqueList = existingMembers.stream().distinct().collect(Collectors.toList());
+	public List<UserCredentials> addMembers(ChatRoomUpdateParams params) {
+		return chatRoomRepository.findByChatRoomId(params.getChatRoomId()).map(chatRoom -> {
+			saveOrUpdateUsers(params.getMembers().getAdd());
+			List<Member> updatedMembersList = resolveChatRoomMembers(params, chatRoom.getMembers());
+			List<Member> updatedUniqueList = updatedMembersList.stream().distinct().collect(Collectors.toList());
 			chatRoom.setMembers(updatedUniqueList);
 			chatRoom = chatRoomRepository.save(chatRoom);
-			sendInviteToUsers(chatRoom, members);
+			sendInviteToUsers(chatRoom, params.getMembers().getAdd());
 			LOGGER.info("Members added successfully....");
 			return mapChatRoomMembersResponse(chatRoom.getMembers());
 		}).orElseGet(ArrayList::new);
 	}
 
+
+	private List<Member> resolveChatRoomMembers(ChatRoomUpdateParams params, List<Member> existing) {
+		List<Member> toAdd = userCredentialToMemberMapper(params.getMembers().getAdd());
+		List<Member> toRemove = userCredentialToMemberMapper(params.getMembers().getRemove());
+		if(!toRemove.isEmpty()) {
+			existing.removeIf(userId -> (toRemove.contains(userId) && !userId.isCreator()));
+		}
+		existing.addAll(toAdd);
+		return existing;
+	}
 
 	private List<Member> userCredentialToMemberMapper(List<UserCredentials> members) {
 		return members.stream().map(mem -> new Member(mem.getUserId(), mem.getIsCreator()))
@@ -141,6 +150,9 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 				if (!credentials.getUsername().equals("")) {
 				   user.setUsername(credentials.getUsername());
 				}
+				if (!credentials.getEmail().equals("")) {
+					user.setEmail(credentials.getEmail());
+				}
 				userDetailsRepository.save(user);
 			}
 			else {
@@ -149,6 +161,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 				newUser.setUsername(credentials.getUsername());
 				newUser.setUserProfilePicture(credentials.getImageLink());
 				newUser.setUserLastSeen(LocalDateTime.now());
+				newUser.setEmail(credentials.getEmail());
 				LOGGER.info("Saved new User");
 				userDetailsRepository.save(newUser);
 			}
@@ -171,6 +184,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 			User user = userDetailsRepository.findByUserId(memberInIt.getUserId().longValue());
 			UserCredentials credentials = new UserCredentials(user.getUserId(), user.getUserProfilePicture(),user.getUsername());
 			credentials.setIsCreator(memberInIt.isCreator());
+			credentials.setEmail(user.getEmail());
 			return credentials;
 		}).collect(Collectors.toList());
 	}

@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.scaffold.chat.datatransfer.ChatRoomResponse;
+import com.scaffold.chat.datatransfer.ChatRoomUpdateParams;
 import com.scaffold.security.domains.UserCredentials;
 
 @Service
@@ -13,7 +14,7 @@ public interface ChatRoomService {
 	
 	public ResponseEntity<Object> createChatRoom(String chatRoomName, List<UserCredentials> chatRoomMembersId);
 		
-	public List<UserCredentials> addMembers(String chatRoomId, List<UserCredentials> members);
+	public List<UserCredentials> addMembers(ChatRoomUpdateParams params);
 		
 	public List<ChatRoomResponse> userChatRooms(long userId);	
 	
