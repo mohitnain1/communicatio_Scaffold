@@ -14,7 +14,7 @@ public interface ChatRoomService {
 	
 	public ResponseEntity<Object> createChatRoom(String chatRoomName, List<UserCredentials> chatRoomMembersId);
 		
-	public List<UserCredentials> addMembers(ChatRoomUpdateParams params);
+	public List<UserCredentials> updateMembers(ChatRoomUpdateParams params);
 		
 	public List<ChatRoomResponse> userChatRooms(long userId);	
 	

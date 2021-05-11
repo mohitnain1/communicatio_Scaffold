@@ -132,7 +132,6 @@ public class MessageEventHandler {
 			senderData.put("sender", sender);
 			senderData.put("content", messagePayload.getContent());
 			senderData.put("sendingTime", new Date().getTime());
-			System.out.println(senderData);
 			if(messagePayload.getDestination().startsWith("/app/chat")) {
 				String chatRoomId = messagePayload.getDestination().replace("/app/chat.", "");
 				chatRoomRepository.findByChatRoomId(chatRoomId).ifPresent(chatRoom ->{				
@@ -140,7 +139,7 @@ public class MessageEventHandler {
 							.filter(memberId -> !memberId.equals(sender.getUserId())).collect(Collectors.toList());
 					chatRoomMembersId.forEach(userId->{
 						senderData.put("chatRoomName", chatRoom.getChatRoomName());
-						String destinationToNotify = String.format(Destinations.MESSGE_EVENT_NOTIFICATION.getPath(), userId);
+						String destinationToNotify = String.format(Destinations.MESSAGE_EVENT_NOTIFICATION.getPath(), userId);
 						template.convertAndSend(destinationToNotify, senderData);
 					});
 				});

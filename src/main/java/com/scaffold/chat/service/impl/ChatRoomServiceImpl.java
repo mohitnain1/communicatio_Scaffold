@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -24,6 +25,7 @@ import com.scaffold.chat.datatransfer.ChatRoomResponse;
 import com.scaffold.chat.datatransfer.ChatRoomUpdateParams;
 import com.scaffold.chat.model.ChatRoom;
 import com.scaffold.chat.model.Member;
+import com.scaffold.chat.model.Message;
 import com.scaffold.chat.model.MessageStore;
 import com.scaffold.chat.model.User;
 import com.scaffold.chat.repository.ChatRoomRepository;
@@ -34,6 +36,7 @@ import com.scaffold.security.domains.UserCredentials;
 import com.scaffold.security.jwt.JwtUtil;
 import com.scaffold.web.util.Destinations;
 import com.scaffold.web.util.Response;
+import com.scaffold.web.util.SimpleIdGenerator;
 
 @Service
 public class ChatRoomServiceImpl implements ChatRoomService {
@@ -42,6 +45,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	@Autowired MongoTemplate mongoTemplate;
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChatRoomServiceImpl.class);
+	private final SimpleIdGenerator idGenerator = new SimpleIdGenerator();
 
 	@Autowired public ChatRoomRepository chatRoomRepository;
 	@Autowired public MessageStoreRepository messageStoreRepository;
@@ -111,7 +115,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	}
 
 	@Override
-	public List<UserCredentials> addMembers(ChatRoomUpdateParams params) {
+	public List<UserCredentials> updateMembers(ChatRoomUpdateParams params) {
 		return chatRoomRepository.findByChatRoomId(params.getChatRoomId()).map(chatRoom -> {
 			saveOrUpdateUsers(params.getMembers().getAdd());
 			List<Member> updatedMembersList = resolveChatRoomMembers(params, chatRoom.getMembers());
@@ -130,9 +134,54 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		List<Member> toRemove = userCredentialToMemberMapper(params.getMembers().getRemove());
 		if(!toRemove.isEmpty()) {
 			existing.removeIf(userId -> (toRemove.contains(userId) && !userId.isCreator()));
+			removedMembersNotification(params, toRemove);
+			
 		}
 		existing.addAll(toAdd);
 		return existing;
+	}
+
+	private Message removedMembersNotification(ChatRoomUpdateParams params, List<Member> toRemove) {
+		List<String> removedUser = new ArrayList<String>();
+		toRemove.forEach(user->{
+			Long userId = user.getUserId();
+			Optional<User> userData = userDetailsRepository.findByUserId(userId);
+			String name = userData.get().getName();
+			removedUser.add(name);
+		});
+		
+		String destinationToNotify = String.format(Destinations.UPDATE_MEMBERS.getPath(), params.getChatRoomId());
+		Message messageData = generateMessageOfRemovedMemebrs(params.getChatRoomId(), removedUser, destinationToNotify);
+		
+		Map<String, Object> removedMessage = new HashMap<String, Object>();
+		removedMessage.put("id", messageData.getId());
+		removedMessage.put("sender", messageData.getSenderId());
+		removedMessage.put("content", messageData.getContent());
+		removedMessage.put("sendingTime", messageData.getSendingTime());
+		simpMessagingTemplate.convertAndSend(destinationToNotify, removedMessage);
+		return saveMessageOfRemovedMembers(messageData, params.getChatRoomId());
+	}
+	
+	private Message generateMessageOfRemovedMemebrs(String chatRoomId, List<String> removedUser, String destinationToNotify) {
+		Message messageDetail = new Message();
+		messageDetail.setDestination(destinationToNotify);
+		messageDetail.setSenderId((long) 0);
+		messageDetail.setContent(removedUser +" removed by Admin");
+		messageDetail.setContentType("text");
+		messageDetail.setSendingTime(LocalDateTime.now());
+		messageDetail.setId(idGenerator.generateRandomId());
+		return messageDetail;
+	}
+	
+	public Message saveMessageOfRemovedMembers(Message message, String chatRoomId) {
+		if(!message.getContent().equals("")) {			
+			MessageStore messageStore = messageStoreRepository.findByChatRoomId(chatRoomId);
+			messageStore.addMessage(message);
+			messageStoreRepository.save(messageStore);
+			LOGGER.info("Members removed successfully....");
+			return message;
+		}
+		return null;
 	}
 
 	private List<Member> userCredentialToMemberMapper(List<UserCredentials> members) {
