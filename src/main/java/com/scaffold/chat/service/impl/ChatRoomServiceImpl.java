@@ -121,64 +121,107 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 			List<Member> updatedMembersList = resolveChatRoomMembers(params, chatRoom.getMembers());
 			List<Member> updatedUniqueList = updatedMembersList.stream().distinct().collect(Collectors.toList());
 			chatRoom.setMembers(updatedUniqueList);
+			new Thread(() -> UpdatedUserNotification(params)).start();
 			chatRoom = chatRoomRepository.save(chatRoom);
 			sendInviteToUsers(chatRoom, params.getMembers().getAdd());
-			LOGGER.info("Members added successfully....");
+			LOGGER.info("Members added successfully...");
 			return mapChatRoomMembersResponse(chatRoom.getMembers());
 		}).orElseGet(ArrayList::new);
 	}
-
 
 	private List<Member> resolveChatRoomMembers(ChatRoomUpdateParams params, List<Member> existing) {
 		List<Member> toAdd = userCredentialToMemberMapper(params.getMembers().getAdd());
 		List<Member> toRemove = userCredentialToMemberMapper(params.getMembers().getRemove());
 		if(!toRemove.isEmpty()) {
 			existing.removeIf(userId -> (toRemove.contains(userId) && !userId.isCreator()));
-			removedMembersNotification(params, toRemove);
-			
+			LOGGER.info("Members removed successfully...");
 		}
 		existing.addAll(toAdd);
 		return existing;
 	}
 
-	private Message removedMembersNotification(ChatRoomUpdateParams params, List<Member> toRemove) {
-		List<String> removedUser = new ArrayList<String>();
-		toRemove.forEach(user->{
-			Long userId = user.getUserId();
-			Optional<User> userData = userDetailsRepository.findByUserId(userId);
-			String name = userData.get().getName();
-			removedUser.add(name);
-		});
+	private Message UpdatedUserNotification(ChatRoomUpdateParams params) {
+		String messageOfAdd="";
+		String messageOfRemove="";
+		String chatRoomId = params.getChatRoomId();
+		long senderId = params.getSenderId();
 		
-		String destinationToNotify = String.format(Destinations.UPDATE_MEMBERS.getPath(), params.getChatRoomId());
-		Message messageData = generateMessageOfRemovedMemebrs(params.getChatRoomId(), removedUser, destinationToNotify);
+		List<UserCredentials> toAdd = params.getMembers().getAdd();
+		List<UserCredentials> toRemove = params.getMembers().getRemove();
 		
-		Map<String, Object> removedMessage = new HashMap<String, Object>();
-		removedMessage.put("id", messageData.getId());
-		removedMessage.put("sender", messageData.getSenderId());
-		removedMessage.put("content", messageData.getContent());
-		removedMessage.put("sendingTime", messageData.getSendingTime());
-		simpMessagingTemplate.convertAndSend(destinationToNotify, removedMessage);
-		return saveMessageOfRemovedMembers(messageData, params.getChatRoomId());
+		if(!toAdd.isEmpty()) {
+			StringBuilder builder = new StringBuilder();
+			toAdd.forEach((addUser) -> {builder.append(addUser.getUsername() + ", ");});
+			messageOfAdd = builder.toString() + " have been added";
+		}
+		
+		if(!toRemove.isEmpty()) {
+			StringBuilder builder = new StringBuilder();
+			toRemove.forEach((removeUser) -> {builder.append(removeUser.getUsername() + ",");});
+			messageOfRemove = builder.toString()+ " have been removed";
+		}
+		
+		UserCredentials sender = fetchUpdaterDataWithDatabase(chatRoomId, senderId);
+		if(Objects.nonNull(sender)) {
+			Message generatedMessage = generateMessageForUpdatedUser(chatRoomId, sender, messageOfAdd, messageOfRemove);
+			Map<String, Object> updateMessage = new HashMap<String, Object>();
+			updateMessage.put("id", generatedMessage.getId());
+			updateMessage.put("sender", sender);
+			updateMessage.put("content", generatedMessage.getContent());
+			updateMessage.put("sendingTime", generatedMessage.getSendingTime());
+			
+			simpMessagingTemplate.convertAndSend(generatedMessage.getDestination(), updateMessage);
+			String destinationToNotify = String.format(Destinations.MESSAGE_EVENT_NOTIFICATION.getPath(),chatRoomId);
+			simpMessagingTemplate.convertAndSend(destinationToNotify, updateMessage);
+			return saveMessageOfUpdatedUser(generatedMessage, chatRoomId);
+		}
+		return null;
 	}
-	
-	private Message generateMessageOfRemovedMemebrs(String chatRoomId, List<String> removedUser, String destinationToNotify) {
+
+	private UserCredentials fetchUpdaterDataWithDatabase(String chatRoomId, long senderId) {
+		Optional<ChatRoom> chatRoom = chatRoomRepository.findByChatRoomId(chatRoomId);
+		List<Member> members = chatRoom.get().getMembers();
+		Member senderData = members.stream().filter(sender-> sender.getUserId().equals(senderId)).collect(Collectors.toList()).get(0);
+		UserCredentials credentials = new UserCredentials();
+		if(Objects.nonNull(senderData)) {
+			User userData = userDetailsRepository.findByUserId(senderId);
+			credentials.setUserId(userData.getUserId());
+			credentials.setUsername(userData.getUsername());
+			credentials.setIsCreator(senderData.isCreator());
+			credentials.setImageLink(userData.getUserProfilePicture());
+			credentials.setEmail(userData.getEmail());
+		}
+		return credentials;
+	}
+
+	private Message generateMessageForUpdatedUser(String chatRoomId, UserCredentials sender, String messageOfAdd, String messageOfRemove) {
+		long senderId = sender.getUserId();
+		String senderName = sender.getUsername();
+		String messageContent="";
+		if(!messageOfAdd.isEmpty() && !messageOfRemove.isEmpty()) {
+			messageContent=messageOfAdd + " And " + messageOfRemove +" by " +senderName;
+		}else if(messageOfAdd.isEmpty()) {
+			messageContent= messageOfRemove +" by " +senderName;
+		}else if(messageOfRemove.isEmpty()){
+			messageContent=messageOfAdd +" by " +senderName;
+		}
+		
 		Message messageDetail = new Message();
+		String destinationToNotify = String.format(Destinations.UPDATE_MEMBERS.getPath(),chatRoomId);
 		messageDetail.setDestination(destinationToNotify);
-		messageDetail.setSenderId((long) 0);
-		messageDetail.setContent(removedUser +" removed by Admin");
-		messageDetail.setContentType("text");
+		messageDetail.setSenderId(senderId);
+		messageDetail.setContent(messageContent);
+		messageDetail.setContentType("update_Member");
 		messageDetail.setSendingTime(LocalDateTime.now());
 		messageDetail.setId(idGenerator.generateRandomId());
 		return messageDetail;
 	}
-	
-	public Message saveMessageOfRemovedMembers(Message message, String chatRoomId) {
-		if(!message.getContent().equals("")) {			
+
+	public Message saveMessageOfUpdatedUser(Message message, String chatRoomId) {
+		if(!message.equals(null)) {			
 			MessageStore messageStore = messageStoreRepository.findByChatRoomId(chatRoomId);
 			messageStore.addMessage(message);
 			messageStoreRepository.save(messageStore);
-			LOGGER.info("Members removed successfully....");
 			return message;
 		}
 		return null;

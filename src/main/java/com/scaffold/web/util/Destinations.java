@@ -3,7 +3,7 @@ package com.scaffold.web.util;
 public enum Destinations {
 	CHATROOM_JOIN("/queue/%s.userJoined"), CHATROOM_LEFT("/queue/%s.userLeft"), 
 	INVITATION("/topic/%s.invitations"), MESSAGE_EVENT_NOTIFICATION("/topic/%s.message-notifiation"),
-	UPDATE_MEMBERS("/topic/conversations/%s");
+	UPDATE_MEMBERS("/topic/conversations.%s");
 	
 	private String path;
 

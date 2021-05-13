@@ -19,6 +19,8 @@ public class UserCredentials implements Principal {
 		this.username = username;
 	}
 	
+	public UserCredentials() {}
+
 	public long getUserId() {
 		return userId;
 	}
