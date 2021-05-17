@@ -33,7 +33,7 @@ public class ScaffoldAuthenticationFilter extends UsernamePasswordAuthentication
 	
 	public ScaffoldAuthenticationFilter(AuthenticationManager authenticationManager, UserServiceImpl userService, 
 			JwtUtil jwtUtil) {
-		super.setFilterProcessesUrl("/auth/authorize");
+		super.setFilterProcessesUrl("/chat/auth/authorize");
 		this.authenticationManager = authenticationManager;
 		this.userService = userService;
 		this.jwtUtil = jwtUtil;
