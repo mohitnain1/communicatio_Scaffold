@@ -10,30 +10,27 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.scaffold.chat.model.Member;
-import com.scaffold.chat.model.Message;
-import com.scaffold.chat.model.MessageStore;
-import com.scaffold.chat.model.User;
+import com.scaffold.chat.datatransfer.UserDataTransfer;
+import com.scaffold.chat.domains.Member;
+import com.scaffold.chat.domains.Message;
+import com.scaffold.chat.domains.MessageStore;
+import com.scaffold.chat.domains.User;
 import com.scaffold.chat.repository.ChatRoomRepository;
 import com.scaffold.chat.repository.MessageStoreRepository;
-import com.scaffold.chat.repository.UsersDetailRepository;
+import com.scaffold.chat.repository.UserRepository;
 import com.scaffold.chat.service.MessageService;
-import com.scaffold.security.domains.UserCredentials;
-import com.scaffold.security.domains.UserSessionRepo;
 
 @Service
 public class MessageServiceImpl implements MessageService {
 	
 	@Autowired public ChatRoomRepository chatRoomRepository;
 	@Autowired public MessageStoreRepository messageStoreRepository;
-	@Autowired private UsersDetailRepository userDetailsRepo;
+	@Autowired private UserRepository userDetailsRepo;
 	
-	private final UserSessionRepo userSessions = UserSessionRepo.getInstance();
-
 	@SuppressWarnings("unchecked")
 	@Override
 	public Map<String, Object> getAllMessages(String chatRoomId, String chatRoomAccessKey) {
-		return (Map<String, Object>) chatRoomRepository.findByChatRoomId(chatRoomId).map(chatRoom -> {
+		return (Map<String, Object>) chatRoomRepository.findByChatRoomIdAndIsDeleted(chatRoomId, false).map(chatRoom -> {
 			if(chatRoom.getRoomAccessKey().equals(chatRoomAccessKey)) {
 				Map<String, Object> response = new HashMap<>();
 				MessageStore messageStore = messageStoreRepository.findByChatRoomId(chatRoomId);
@@ -54,10 +51,10 @@ public class MessageServiceImpl implements MessageService {
 				User user = userDetailsRepo.findByUserId(mem.getUserId().longValue());
 				HashMap<String, Object> userDetail = new HashMap<>();
 				userDetail.put("userId", mem.getUserId());
-				userDetail.put("imageLink", user.getUserProfilePicture());
+				userDetail.put("imageLink", user.getImage());
 				userDetail.put("username", user.getUsername());
 				userDetail.put("isCreator", mem.isCreator());
-				userDetail.put("isOnline", getUserOnlineStatus(mem.getUserId()));
+				userDetail.put("isOnline", user.isOnline());
 				return userDetail;
 			}).collect(Collectors.toList());
 		} else {
@@ -65,18 +62,12 @@ public class MessageServiceImpl implements MessageService {
 		}
 	}
 
-	private boolean getUserOnlineStatus(Long userId) {
-		long count = userSessions.getActiveSessions().entrySet().stream()
-				.filter(entry -> entry.getValue().getUserId() == userId.longValue()).count();
-		if(count > 0) return true;
-		return false;
-	}
 
 	public Map<String, Object> mapMessageResponse(Message message) {
-		User user = userDetailsRepo.findByUserId(message.getSenderId().longValue());
+		User user = userDetailsRepo.findByUserId(message.getSenderId());
 		Map<String, Object> res = new HashMap<>();
 		res.put("content", message.getContent());
-		res.put("sender", new UserCredentials(user.getUserId(), user.getUserProfilePicture(), user.getUsername()));
+		res.put("sender", new UserDataTransfer(user.getUserId(), user.getImage(), user.getUsername()));
 		res.put("sendingTime", Timestamp.valueOf(message.getSendingTime()).getTime());
 		res.put("id", message.getId());
 		res.put("contentType", message.getContentType() == null ? "Text" : message.getContentType());

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,7 +23,8 @@ public class MessageController {
 	@Autowired public MessageService messageService;
 
 	@GetMapping(UrlConstants.GET_ALL_MESSAGES)
-	public ResponseEntity<Object> getAllMessages(@RequestParam String chatRoomId, @RequestParam String accessKey) {
+	public ResponseEntity<Object> getAllMessages(@RequestParam String chatRoomId, @RequestParam String accessKey, 
+			@RequestHeader("Authorization") String accessToken) {
 		Map<String, Object> message = messageService.getAllMessages(chatRoomId, accessKey);
 		if (Objects.isNull(message)) {
 			return Response.generateResponse(HttpStatus.OK, null, "Invalid Chatroom Id", false);

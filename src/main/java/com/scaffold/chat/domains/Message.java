@@ -1,11 +1,11 @@
-package com.scaffold.chat.model;
+package com.scaffold.chat.domains;
 
 import java.time.LocalDateTime;
 
 public class Message {
 	
 	private String id;
-	private Long senderId;
+	private long senderId;
 	private String content;
 	private LocalDateTime sendingTime;
 	private String contentType;
@@ -27,10 +27,10 @@ public class Message {
 		this.id = id;
 	}
 	
-	public Long getSenderId() {
+	public long getSenderId() {
 		return senderId;
 	}
-	public void setSenderId(Long senderId) {
+	public void setSenderId(long senderId) {
 		this.senderId = senderId;
 	}
 	public String getContent() {

@@ -1,11 +1,9 @@
-package com.scaffold.security.domains;
-
-import java.security.Principal;
+package com.scaffold.chat.datatransfer;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class UserCredentials implements Principal {
+public class UserDataTransfer{
 
 	private long userId;
 	private String imageLink;
@@ -13,7 +11,7 @@ public class UserCredentials implements Principal {
 	private String email;
 	private Boolean isCreator = false;
 
-	public UserCredentials(long userId, String imageLink, String username) {
+	public UserDataTransfer(long userId, String imageLink, String username) {
 		this.userId = userId;
 		this.imageLink = imageLink;
 		this.username = username;
@@ -50,15 +48,10 @@ public class UserCredentials implements Principal {
 	public void setIsCreator(Boolean isCreator) {
 		this.isCreator = isCreator;
 	}
-
-	@Override
-	public String getName() {
-		return this.username;
-	}
-
+	
 	@Override
 	public boolean equals(Object obj) {
-		UserCredentials cred = (UserCredentials) obj;
+		UserDataTransfer cred = (UserDataTransfer) obj;
 		return this.userId == cred.getUserId();
 	}
 
