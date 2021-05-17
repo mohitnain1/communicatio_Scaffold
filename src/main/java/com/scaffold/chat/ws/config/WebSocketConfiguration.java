@@ -2,22 +2,28 @@ package com.scaffold.chat.ws.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
-import com.scaffold.chat.repository.UsersDetailRepository;
-import com.scaffold.chat.ws.event.WebSocketChannelInterceptor;
+import com.scaffold.chat.repository.UserRepository;
+import com.scaffold.chat.ws.event.ConnectDisconnectEventHandler;
+import com.scaffold.chat.ws.event.WebSocketAuthenticationFilter;
+import com.scaffold.security.jwt.JwtUtil;
 import com.scaffold.web.util.ScaffoldProperties;
 
+@Order(Ordered.HIGHEST_PRECEDENCE + 99)
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
 	
-	@Autowired UsersDetailRepository usersDetailRepository;
+	@Autowired UserRepository usersDetailRepository;
 	@Autowired ScaffoldProperties properties;
+	@Autowired JwtUtil jwtUtil;
 	
 	@Override
 	public void registerStompEndpoints(StompEndpointRegistry registry) {
@@ -35,6 +41,7 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
 
 	@Override
 	public void configureClientInboundChannel(ChannelRegistration registration) {
-		registration.interceptors(new WebSocketChannelInterceptor(usersDetailRepository));
+		registration.interceptors(new WebSocketAuthenticationFilter(jwtUtil), 
+				new ConnectDisconnectEventHandler(usersDetailRepository));
 	}
 }

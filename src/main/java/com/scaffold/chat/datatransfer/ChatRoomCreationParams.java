@@ -2,12 +2,10 @@ package com.scaffold.chat.datatransfer;
 
 import java.util.List;
 
-import com.scaffold.security.domains.UserCredentials;
-
 public class ChatRoomCreationParams {
 	
 	private String chatRoomName;
-	private List<UserCredentials> members;
+	private List<Long> members;
 	
 	public String getChatRoomName() {
 		return chatRoomName;
@@ -15,10 +13,10 @@ public class ChatRoomCreationParams {
 	public void setChatRoomName(String chatRoomName) {
 		this.chatRoomName = chatRoomName;
 	}
-	public List<UserCredentials> getMembers() {
+	public List<Long> getMembers() {
 		return members;
 	}
-	public void setMembers(List<UserCredentials> members) {
+	public void setMembers(List<Long> members) {
 		this.members = members;
 	}
 	@Override
