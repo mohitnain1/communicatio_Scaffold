@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.scaffold.chat.datatransfer.FileUploadParms;
 @Service
-public interface ChatFileUploadService {
+public interface FileUploadService {
 	
 	public List<Map<String, Object>> uploadFile(FileUploadParms fileParms, HttpServletRequest request);
 	public byte[] downloadFile(String fileName);
