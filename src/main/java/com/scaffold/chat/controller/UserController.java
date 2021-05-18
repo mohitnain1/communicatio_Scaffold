@@ -24,12 +24,12 @@ public class UserController {
 	
 	@Autowired UserService userService;
 	
-	@GetMapping("/users")
+	@GetMapping("/chat/users")
 	public ResponseEntity<Object> getAllUsers(@RequestHeader("Authorization") String accessToken) {
 		return Response.generateResponse(HttpStatus.OK, userService.getAllUsers(), "Success", true);
 	}
 	
-	@PostMapping("/users")
+	@PostMapping("/chat/users")
 	public ResponseEntity<Object> saveUser(@RequestBody UserDTO user, @RequestHeader("Authorization") String accessToken) {
 		User savedUser = userService.saveUser(user);
 		if(Objects.nonNull(savedUser)) {
@@ -38,7 +38,7 @@ public class UserController {
 		return Response.generateResponse(HttpStatus.EXPECTATION_FAILED, null, "Failed", false);
 	}
 	
-	@PutMapping("/users")
+	@PutMapping("/chat/users")
 	public ResponseEntity<Object> updateUsers(@RequestBody UserDTO payload, @RequestParam String id, 
 			@RequestHeader("Authorization") String accessToken) {
 		User user = userService.updateUser(id, payload);
@@ -48,7 +48,7 @@ public class UserController {
 		return Response.generateResponse(HttpStatus.EXPECTATION_FAILED, null, "Failed", false);
 	}
 	
-	@DeleteMapping("/users")
+	@DeleteMapping("/chat/users")
 	public ResponseEntity<Object> deleteUser(@RequestParam String id, @RequestHeader("Authorization") String accessToken) {
 		boolean deleted = userService.deleteUser(id);
 		if(deleted) {
@@ -57,7 +57,7 @@ public class UserController {
 		return Response.generateResponse(HttpStatus.EXPECTATION_FAILED, null, "Failed", false); 
 	}
 	
-	@GetMapping("/users/{id}")
+	@GetMapping("/chat/users/{id}")
 	public ResponseEntity<Object> getUserById(@RequestParam String id, @RequestHeader("Authorization") String accessToken) {
 		User user = userService.getUser(id);
 		if(Objects.nonNull(user)) {
