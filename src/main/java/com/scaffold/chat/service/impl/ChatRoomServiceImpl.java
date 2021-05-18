@@ -69,12 +69,16 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	}
 
 	private boolean isOperatingUser(Long member) {
-		String email = SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
+		String email = getCurrentUser().getUsername();
 		User user = userDetailsRepository.findByEmailAndIsDeleted(email, false);
 		if(member.equals(user.getUserId())) {
 			return true;
 		}
 		return false;
+	}
+
+	private org.springframework.security.core.userdetails.User getCurrentUser() {
+		return (org.springframework.security.core.userdetails.User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 	}
 
 	private void sendInviteToUsers(ChatRoom chatRoom, List<Member> chatRoomMembers) {
