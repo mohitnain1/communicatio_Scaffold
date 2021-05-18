@@ -72,13 +72,4 @@ public class ChatRoomController {
 		}
 	}
 	
-//	@PutMapping(UrlConstants.REMOVE_CHATROOM_MEMBERS)
-//	public ResponseEntity<Object> removeChatRoomMembers(@RequestBody ChatRoomUpdateParams params) {
-//		List<UserCredentials> removeMembers = chatRoomServices.removeMembers(params.getChatRoomId(), params.getMembers());
-//		if(!removeMembers.isEmpty()) {
-//			return Response.generateResponse(HttpStatus.OK, removeMembers, "Members Removed", true);
-//		} else {
-//			return Response.generateResponse(HttpStatus.EXPECTATION_FAILED, null, "Unable to remove members.", false);
-//		}
-//	}
 }
