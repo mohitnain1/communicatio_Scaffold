@@ -59,9 +59,10 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		} else {		
 			List<Long> membersToAdd = chatRoomMembers.stream().filter( id -> userExists(id)).collect(Collectors.toList());
 			List<Member> members = membersToAdd.stream().map(member-> new Member(member, isOperatingUser(member))).collect(Collectors.toList());
+			System.out.println(members.stream().filter(member -> !member.isCreator()).collect(Collectors.toList()));
 			ChatRoom chatRoom = mapChatRoomCreationDetails(chatRoomName, members);		
 			
-			sendInviteToUsers(chatRoom, members);
+			sendInviteToUsers(chatRoom, members.stream().filter(member -> !member.isCreator()).collect(Collectors.toList()));
 			ChatRoomResponse response = mapper.convertValue(chatRoom, ChatRoomResponse.class);
 			response.setTotalMembers(chatRoom.getMembers().size());
 			return Response.generateResponse(HttpStatus.CREATED, response, "Chatroom Created", true);
@@ -81,26 +82,18 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		return (org.springframework.security.core.userdetails.User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 	}
 
-	private void sendInviteToUsers(ChatRoom chatRoom, List<Member> chatRoomMembers) {
+	private void sendInviteToUsers(ChatRoom chatRoom, List<Member> membersSendInvite) {
+		User currentUser = userDetailsRepository.findByEmailAndIsDeleted(getCurrentUser().getUsername(), false);
 		HashMap<String, Object> response = new HashMap<>();
 		response.put("chatRoomId", chatRoom.getChatRoomId());
 		response.put("chatRoomName", chatRoom.getChatRoomName());
 		response.put("roomAccessKey", chatRoom.getRoomAccessKey());
 		response.put("totalMembers", chatRoom.getMembers().size());
-		response.put("creator", getUserBasicDetails(chatRoomMembers.stream().filter(mem -> mem.isCreator()).findAny().get()));
-		
-		chatRoom.getMembers().forEach(member -> {
-			if(!member.isCreator()) {
-				String destination = String.format(Destinations.INVITATION.getPath(), member.getUserId());
-				simpMessagingTemplate.convertAndSend(destination ,response);
-			}
+		response.put("creator", new UserDataTransfer(currentUser.getUserId(), currentUser.getImage(), currentUser.getUsername()));
+		membersSendInvite.forEach(member -> {
+			String destination = String.format(Destinations.INVITATION.getPath(), member.getUserId());
+			simpMessagingTemplate.convertAndSend(destination ,response);
 		});
-	}
-
-	private UserDataTransfer getUserBasicDetails(Member member) {
-		return userDetailsRepository.findByUserId(member.getUserId())
-					.map(user -> new UserDataTransfer(user.getUserId(), user.getImage(), user.getUsername()))
-						.orElse(null);
 	}
 
 	private ChatRoom mapChatRoomCreationDetails(String chatRoomName, List<Member> members) {
@@ -135,6 +128,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 			List<Member> updatedUniqueList = updatedMembersList.stream().distinct().collect(Collectors.toList());
 			chatRoom.setMembers(updatedUniqueList);
 			chatRoom = chatRoomRepository.save(chatRoom);
+			sendInviteToUsers(chatRoom, userIdToMemberMapper(params.getMembers().getAdd()));
 			return memberToUserCredential(chatRoom.getMembers());
 		}).orElseGet(ArrayList::new);
 	}
