@@ -9,8 +9,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -31,21 +29,20 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.util.IOUtils;
 import com.scaffold.chat.datatransfer.FileUploadParms;
-import com.scaffold.chat.model.ChatPayload;
-import com.scaffold.chat.model.Message;
-import com.scaffold.chat.model.User;
-import com.scaffold.chat.repository.UsersDetailRepository;
-import com.scaffold.chat.service.ChatFileUploadService;
+import com.scaffold.chat.datatransfer.UserDataTransfer;
+import com.scaffold.chat.domains.ChatPayload;
+import com.scaffold.chat.domains.Message;
+import com.scaffold.chat.domains.User;
+import com.scaffold.chat.repository.UserRepository;
+import com.scaffold.chat.service.FileUploadService;
 import com.scaffold.chat.ws.event.MessageEventHandler;
-import com.scaffold.security.domains.UserCredentials;
 import com.scaffold.web.util.FileData;
 import com.scaffold.web.util.MessageEnum;
 
 @Service
-public class ChatFileUploadServiceImpl implements ChatFileUploadService {
+public class FileUploadServiceImpl implements FileUploadService {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ChatFileUploadServiceImpl.class);
-	private final ExecutorService exec = Executors.newFixedThreadPool(5);
+	private static final Logger LOGGER = LoggerFactory.getLogger(FileUploadServiceImpl.class);
 	
 	@Autowired
 	private AmazonS3 amazonS3;
@@ -57,7 +54,7 @@ public class ChatFileUploadServiceImpl implements ChatFileUploadService {
 	private String uniqueFileName = null;
 	
 	@Autowired MessageEventHandler messageEventHandler; 
-	@Autowired UsersDetailRepository userDetailsRepository;
+	@Autowired UserRepository userDetailsRepository;
 
 	@Override
 	@Async
@@ -75,11 +72,9 @@ public class ChatFileUploadServiceImpl implements ChatFileUploadService {
 
 				uniqueFileName = System.currentTimeMillis() + "-" + UUID.randomUUID().toString().substring(0, 3) + "-"+ file.getFileName();
 				downloadsLinks.add(generateDownloadLink(request, uniqueFileName));
-				exec.submit(() -> {
-					LOGGER.info("Uploading {} ", uniqueFileName);
-					amazonS3.putObject(bucketName, uniqueFileName, data, metadata);
-					LOGGER.info("Finished uploading file {}", uniqueFileName);
-				});
+				LOGGER.info("Uploading {} ", uniqueFileName);
+				amazonS3.putObject(bucketName, uniqueFileName, data, metadata);
+				LOGGER.info("Finished uploading file {}", uniqueFileName);
 			}
 			return saveMessageAndReturnContent(downloadsLinks, fileParms);
 		} catch (AmazonServiceException ex) {
@@ -91,12 +86,12 @@ public class ChatFileUploadServiceImpl implements ChatFileUploadService {
 	private List<Map<String, Object>> saveMessageAndReturnContent(List<String> downloadsLinks, FileUploadParms fileParms) {
 		List<Map<String, Object>> response = new ArrayList<>();
 		User user = userDetailsRepository.findByUserId(fileParms.getSenderId());
-		UserCredentials sender = new UserCredentials(user.getUserId(), user.getUserProfilePicture(), user.getUsername());
+		UserDataTransfer sender = new UserDataTransfer(user.getUserId(), user.getImage(), user.getUsername());
 		String destination = "/app/chat." + fileParms.getChatRoomId();
 		for(String link  : downloadsLinks) {
 			ChatPayload payload = new ChatPayload(fileParms.getSenderId(), link, destination);
 			payload.setContentType(MessageEnum.IMAGE.getValue());
-			Message savedMessage = messageEventHandler.saveFileUploadParam(payload);
+			Message savedMessage = messageEventHandler.saveFileMessage(payload);
 			//Upload Message Notification in chatrooms
 			messageEventHandler.newMessageEvent(savedMessage, sender);
 			//Send Messages in chatroom.

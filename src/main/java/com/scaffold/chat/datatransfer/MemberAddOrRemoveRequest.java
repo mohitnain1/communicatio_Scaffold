@@ -2,25 +2,22 @@ package com.scaffold.chat.datatransfer;
 
 import java.util.List;
 
-import com.scaffold.security.domains.UserCredentials;
-
 public class MemberAddOrRemoveRequest{
 	
-	private List<UserCredentials> add;
-	private List<UserCredentials> remove;
+	private List<Long> add;
+	private List<Long> remove;
 	
-	public List<UserCredentials> getAdd() {
+	public List<Long> getAdd() {
 		return add;
 	}
-	public void setAdd(List<UserCredentials> add) {
+	public void setAdd(List<Long> add) {
 		this.add = add;
 	}
-	public List<UserCredentials> getRemove() {
+	public List<Long> getRemove() {
 		return remove;
 	}
-	public void setRemove(List<UserCredentials> remove) {
+	public void setRemove(List<Long> remove) {
 		this.remove = remove;
 	}
-	
 	
 }

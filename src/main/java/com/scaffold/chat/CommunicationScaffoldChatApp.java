@@ -8,6 +8,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.Bean;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.scaffold.security.jwt.JwtUtil;
 
@@ -35,7 +37,7 @@ public class CommunicationScaffoldChatApp {
 			"Apache 2.0", "http://www.apache.org/licenses/LICENSE-2.0", Arrays.asList());
 
 	private static final Set<String> DEFAULT_PRODUCES_AND_CONSUMES = new HashSet<String>(
-			Arrays.asList("application/json", "application/xml"));
+			Arrays.asList("application/json"));
 
 	@Bean
 	public Docket api() {
@@ -46,5 +48,17 @@ public class CommunicationScaffoldChatApp {
 	@Bean
 	public JwtUtil jwtUtil() {
 		return new JwtUtil();
+	}
+	
+	@Bean
+	public WebMvcConfigurer corsConfigurer() {
+	    return new WebMvcConfigurer () {
+	        @Override
+	        public void addCorsMappings(CorsRegistry registry) {
+	            registry.addMapping("/**")
+	            	.allowCredentials(true)
+	            	.allowedOriginPatterns("*");
+	        }
+	    };
 	}
 }

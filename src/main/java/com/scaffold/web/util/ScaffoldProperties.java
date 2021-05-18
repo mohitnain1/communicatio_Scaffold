@@ -11,5 +11,9 @@ public @Data class  ScaffoldProperties {
 	private String brokerPassword;
 	private String brokerHostName;
 	private int brokerPort;
+	
+	private String adminUsername;
+	private String adminPassword;
+	private String adminEmail;
 
 }

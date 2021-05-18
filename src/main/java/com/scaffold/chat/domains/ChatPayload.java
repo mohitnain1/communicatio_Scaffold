@@ -1,4 +1,4 @@
-package com.scaffold.chat.model;
+package com.scaffold.chat.domains;
 
 public class ChatPayload {
 

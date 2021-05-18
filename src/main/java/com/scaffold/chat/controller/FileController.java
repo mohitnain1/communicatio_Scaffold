@@ -15,22 +15,24 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.scaffold.chat.datatransfer.FileUploadParms;
-import com.scaffold.chat.service.ChatFileUploadService;
+import com.scaffold.chat.service.FileUploadService;
 import com.scaffold.chat.web.MessageConstants;
 import com.scaffold.chat.web.UrlConstants;
 import com.scaffold.web.util.Response;
 
 @RestController
-public class ChatFileController {
+public class FileController {
 
 	@Autowired
-	private ChatFileUploadService chatFileService;
+	private FileUploadService chatFileService;
 
 	@PostMapping(UrlConstants.FILE_UPLOAD)
-	public ResponseEntity<Object> upload(@RequestBody FileUploadParms fileUpload, HttpServletRequest request) {
+	public ResponseEntity<Object> upload(@RequestBody FileUploadParms fileUpload, HttpServletRequest request, 
+			@RequestHeader("Authorization") String accessToken) {
 		List<Map<String, Object>> data = chatFileService.uploadFile(fileUpload, request);
 		if (data.isEmpty()) {
 			return Response.generateResponse(HttpStatus.EXPECTATION_FAILED, null, MessageConstants.FILE_UPLOADED_ERROR, false);
@@ -39,7 +41,7 @@ public class ChatFileController {
 	}
 
 	@GetMapping(UrlConstants.FILE_DOWNLOAD)
-	public ResponseEntity<Object> downloadFile(@PathVariable String fileName) {
+	public ResponseEntity<Object> downloadFile(@PathVariable String fileName, @RequestHeader("Authorization") String accessToken) {
 		byte[] data = chatFileService.downloadFile(fileName);
 		ByteArrayResource resource = new ByteArrayResource(data);
 		fileName = fileName.substring(18);
@@ -51,7 +53,7 @@ public class ChatFileController {
 	}
 
 	@DeleteMapping(UrlConstants.FILE_DELETE)
-	public ResponseEntity<Object> deleteFile(@PathVariable String fileName) {
+	public ResponseEntity<Object> deleteFile(@PathVariable String fileName, @RequestHeader("Authorization") String accessToken) {
 		return Response.generateResponse(HttpStatus.OK, chatFileService.deleteFile(fileName), MessageConstants.FILE_DELETED, true);
 	}
 

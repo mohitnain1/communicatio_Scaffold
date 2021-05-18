@@ -9,7 +9,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.scaffold.chat.model.ChatPayload;
+import com.scaffold.chat.domains.ChatPayload;
 import com.scaffold.chat.service.ChatRoomService;
 import com.scaffold.chat.ws.event.MessageEventHandler;
 
@@ -22,7 +22,7 @@ public class WebSocketController {
 	
 	@MessageMapping("/chat.{chatRoomId}")
 	public void chatRoom(@DestinationVariable String chatRoomId, Message<ChatPayload> message) {
-		com.scaffold.chat.model.Message savedMessage = messageEventHandler
+		com.scaffold.chat.domains.Message savedMessage = messageEventHandler
 				.saveMessage(message.getPayload(), messageEventHandler.getHeaderAccessor(message));
 		messageEventHandler.newMessageEvent(savedMessage, messageEventHandler.getCredentials(message));
 		if(Objects.nonNull(savedMessage)) {
