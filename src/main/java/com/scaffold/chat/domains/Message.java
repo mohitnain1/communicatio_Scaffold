@@ -10,7 +10,16 @@ public class Message {
 	private LocalDateTime sendingTime;
 	private String contentType;
 	private String destination;
+	private boolean isDeleted;
 	
+	public boolean isDeleted() {
+		return isDeleted;
+	}
+
+	public void setDeleted(boolean isDeleted) {
+		this.isDeleted = isDeleted;
+	}
+
 	public String getContentType() {
 		return contentType;
 	}

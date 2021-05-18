@@ -1,5 +1,6 @@
 package com.scaffold.chat.service.impl;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -8,6 +9,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.security.core.GrantedAuthority;
@@ -24,13 +26,15 @@ import com.scaffold.chat.datatransfer.UserDTO;
 import com.scaffold.chat.domains.User;
 import com.scaffold.chat.repository.UserRepository;
 import com.scaffold.chat.service.UserService;
+import com.scaffold.web.util.ScaffoldProperties;
 
 @Service
-public class UserServiceImpl implements UserService, UserDetailsService{
+public class UserServiceImpl implements UserService, UserDetailsService, CommandLineRunner{
 
 	@Autowired MongoTemplate mongoTemplate;
 	@Autowired ObjectMapper objectMapper;
 	@Autowired UserRepository userRepository;
+	@Autowired ScaffoldProperties properties;
 	
 	private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 	
@@ -114,5 +118,19 @@ public class UserServiceImpl implements UserService, UserDetailsService{
 	
 	public User loadUserByEmail(String email) {
 		return userRepository.findByEmailAndIsDeleted(email, false);
+	}
+
+
+	@Override
+	public void run(String... args) throws Exception {
+		User user = userRepository.findByEmailAndIsDeleted("scaffold-admin@oodles.io", false);
+		if(Objects.nonNull(user)) {
+			return;
+		} else {
+			List<String> roles = Arrays.asList("ROLE_ADMIN", "ROLE_APP_ADMIN", "ROLE_SUPERADMIN");
+			String password = encodeDetails(properties.getAdminPassword());
+			User adminUser = new User(16052021L, properties.getAdminUsername(), "NA", properties.getAdminEmail(),password , roles);
+			mongoTemplate.save(adminUser);
+		}
 	}
 }

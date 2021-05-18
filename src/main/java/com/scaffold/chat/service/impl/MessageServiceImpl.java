@@ -34,7 +34,7 @@ public class MessageServiceImpl implements MessageService {
 			if(chatRoom.getRoomAccessKey().equals(chatRoomAccessKey)) {
 				Map<String, Object> response = new HashMap<>();
 				MessageStore messageStore = messageStoreRepository.findByChatRoomId(chatRoomId);
-				List<Message> messageDetails = messageStore.getMessageDetails();
+				List<Message> messageDetails = messageStore.getMessageDetails().stream().filter(message -> !message.isDeleted()).collect(Collectors.toList());
 				List<Map<String, Object>> messageList = messageDetails.stream().map(message -> mapMessageResponse(message)).collect(Collectors.toList());
 				response.put("messages", messageList);
 				response.put("members", getMembersResponse(chatRoom.getMembers()));
@@ -74,4 +74,12 @@ public class MessageServiceImpl implements MessageService {
 		return res;
 	}
 
+	@Override
+	public boolean deleteMessage(String messageId, String chatRoomId) {
+		return chatRoomRepository.findByChatRoomIdAndIsDeleted(chatRoomId, false).map(chatRoom -> {
+			List<Message> messages = chatRoom.getMessageStore().getMessageDetails();
+			return true;
+		}).orElse(false);
+	}
+	
 }
