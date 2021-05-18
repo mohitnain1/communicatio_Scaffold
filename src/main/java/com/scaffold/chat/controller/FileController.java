@@ -41,7 +41,7 @@ public class FileController {
 	}
 
 	@GetMapping(UrlConstants.FILE_DOWNLOAD)
-	public ResponseEntity<Object> downloadFile(@PathVariable String fileName, @RequestHeader("Authorization") String accessToken) {
+	public ResponseEntity<Object> downloadFile(@PathVariable String fileName) {
 		byte[] data = chatFileService.downloadFile(fileName);
 		ByteArrayResource resource = new ByteArrayResource(data);
 		fileName = fileName.substring(18);
