@@ -58,6 +58,7 @@ public class CommunicationScaffoldChatApp {
 	            registry.addMapping("/**")
 	            	.allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH")
 	            	.allowCredentials(true)
+	            	.allowedOrigins("https://stage.oodleslab.com/")
 	            	.allowedOriginPatterns("*");
 	        }
 	    };
