@@ -56,9 +56,8 @@ public class CommunicationScaffoldChatApp {
 	        @Override
 	        public void addCorsMappings(CorsRegistry registry) {
 	            registry.addMapping("/**")
-	            	.allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH")
+	            	.allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
 	            	.allowCredentials(true)
-	            	.allowedOrigins("*")
 	            	.allowedOriginPatterns("*");
 	        }
 	    };
