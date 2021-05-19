@@ -2,7 +2,7 @@ package com.scaffold.chat.web;
 
 public class UrlConstants {
 	
-	private static final String PREFIX = "/chat";
+	private static final String PREFIX = "/chat-api/chat";
 	
 	/**
 	 * Destination Constants
