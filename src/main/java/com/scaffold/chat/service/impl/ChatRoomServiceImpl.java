@@ -151,7 +151,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		UserDataTransfer sender = getCurrentUserBasicDetails(getCurrentUser().getUsername());
 		
 		if (Objects.nonNull(sender)) {
-			Message generatedMessage = messageForUpdateUser(chatRoomId, sender, toAdd, toRemove);
+			Message generatedMessage = getUpdateMemberMessage(chatRoomId, sender, toAdd, toRemove);
 			Map<String, Object> response = new HashMap<String, Object>();
 			response.put("id", generatedMessage.getId());
 			response.put("sender", sender);
@@ -166,7 +166,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		return null;
 	}
 	
-	private Message messageForUpdateUser(String chatRoomId, UserDataTransfer sender, List<Member> toAdd, List<Member> toRemove) {
+	private Message getUpdateMemberMessage(String chatRoomId, UserDataTransfer sender, List<Member> toAdd, List<Member> toRemove) {
 		Message message = new Message();
 		String messageContent = messageContent(sender, toAdd, toRemove);
 		String destinationToNotify = String.format(Destinations.UPDATE_MEMBERS.getPath(), chatRoomId);
@@ -180,24 +180,26 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	}
 	
 	private String messageContent(UserDataTransfer sender, List<Member> toAdd, List<Member> toRemove) {
-		String messageContent = "";
-		StringBuilder addContent = new StringBuilder();
-		StringBuilder removeContent = new StringBuilder();
+		StringBuffer messageContent = new StringBuffer();
+		StringBuilder usernamesToAdd = new StringBuilder();
+		StringBuilder usernameToRemove = new StringBuilder();
 		
 		if (!toAdd.isEmpty() && !toRemove.isEmpty()) {
-			toAdd.forEach((addUser) -> {addContent.append(getUserBasicDetails(addUser).getUsername() + ", ");});
-			toRemove.forEach((removeUser) -> {removeContent.append(getUserBasicDetails(removeUser).getUsername() + ",");});
-			messageContent=addContent.toString() + " have been added And "+removeContent.toString() +" have been removed by "+sender.getUsername();
+			toAdd.forEach(addUser -> usernamesToAdd.append(getUserBasicDetails(addUser).getUsername() + " |"));
+			toRemove.forEach(removeUser -> usernameToRemove.append(getUserBasicDetails(removeUser).getUsername() + " | "));
+			return messageContent.append(sender.getUsername()).append(" added ").append(usernamesToAdd.toString())
+					.append(" and ").append("removed ").append(usernameToRemove.toString()).toString();
 		}
 		else if (!toAdd.isEmpty()) {
-			toAdd.forEach((addUser) -> {addContent.append(getUserBasicDetails(addUser).getUsername() + ", ");});
-			messageContent=addContent.toString() + " have been added by "+ sender.getUsername();
+			toAdd.forEach((addUser) -> usernamesToAdd.append(getUserBasicDetails(addUser).getUsername() + " | "));
+			messageContent.append(sender.getUsername()).append(" added ").append(usernamesToAdd.toString());
+			return messageContent.toString();
 		}
 		else if (!toRemove.isEmpty()) {
-			toRemove.forEach((removeUser) -> {removeContent.append(getUserBasicDetails(removeUser).getUsername() + ",");});
-			messageContent=removeContent.toString() +" have been removed by "+sender.getUsername();
-		}
-		return messageContent;
+			toRemove.forEach(removeUser -> usernameToRemove.append(getUserBasicDetails(removeUser).getUsername() + " | "));
+			return messageContent.append(sender.getUserId()).append(" removed ").append(usernameToRemove.toString()).toString();
+		} 
+		return messageContent.toString();
 	}
 		
 	public Message saveMessageOfUpdatedUser(Message message, String chatRoomId) {
