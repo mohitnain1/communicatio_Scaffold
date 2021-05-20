@@ -40,8 +40,8 @@ public class ChatRoomController {
 	}
 	
 	@PutMapping(UrlConstants.UPDATE_MEMBERS)
-	public ResponseEntity<Object> addMembers(@RequestBody ChatRoomUpdateParams params, @RequestHeader("Authorization") String accessToken) {
-		List<UserDataTransfer> members = chatRoomServices.addMembers(params);
+	public ResponseEntity<Object> updateMembers(@RequestBody ChatRoomUpdateParams params, @RequestHeader("Authorization") String accessToken) {
+		List<UserDataTransfer> members = chatRoomServices.updateUserInChatRoom(params);
 		if(!members.isEmpty()) {
 			return Response.generateResponse(HttpStatus.CREATED, members, "Added or updated members", true);
 		}
