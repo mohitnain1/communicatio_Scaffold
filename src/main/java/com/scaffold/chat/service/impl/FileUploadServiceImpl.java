@@ -103,9 +103,10 @@ public class FileUploadServiceImpl implements FileUploadService {
 	}
 
 	private String generateDownloadLink(HttpServletRequest request, String fileName) {
-		UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme(request.getScheme())
-				.host(request.getLocalName()).port(request.getServerPort()).path("chat/download/" + fileName).build();
-		return uriComponents.toUriString();
+//		UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme(request.getScheme())
+//				.host(request.getLocalName()).port(request.getServerPort()).path("chat/download/" + fileName).build();
+//		return uriComponents.toUriString();
+		return "https://stage.oodleslab.com/chat-api/chat/download/" + fileName;
 	}
 
 	// Here Download file from s3 bucket....
