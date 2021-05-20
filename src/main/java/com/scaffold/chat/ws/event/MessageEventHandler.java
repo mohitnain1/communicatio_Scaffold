@@ -23,6 +23,7 @@ import com.scaffold.chat.repository.ChatRoomRepository;
 import com.scaffold.chat.repository.MessageStoreRepository;
 import com.scaffold.chat.repository.UserRepository;
 import com.scaffold.web.util.Destinations;
+import com.scaffold.web.util.MessageEnum;
 import com.scaffold.web.util.SimpleIdGenerator;
 
 @Component
@@ -96,7 +97,7 @@ public class MessageEventHandler {
 		messageDetail.setDestination(messagePayload.getDestination());
 		messageDetail.setSenderId(messagePayload.getSenderId());
 		messageDetail.setContent(messagePayload.getContent());
-		messageDetail.setContentType(messagePayload.getContentType() == null ? "Text" : messagePayload.getContentType());
+		messageDetail.setContentType(messagePayload.getContentType() == null ? MessageEnum.TEXT.getValue() : messagePayload.getContentType());
 		messageDetail.setSendingTime(new Timestamp(messagePayload.getSendingTime()).toLocalDateTime());
 		messageDetail.setId(idGenerator.generateRandomId());
 		return messageDetail;

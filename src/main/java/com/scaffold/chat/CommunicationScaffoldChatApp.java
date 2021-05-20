@@ -62,11 +62,4 @@ public class CommunicationScaffoldChatApp {
 	        }
 	    };
 	}
-	
-	@Bean
-	public HttpFirewall allowUrlEncodedSlashHttpFirewall() {
-	    StrictHttpFirewall firewall = new StrictHttpFirewall();
-	    firewall.setAllowUrlEncodedSlash(true);    
-	    return firewall;
-	}
 }
