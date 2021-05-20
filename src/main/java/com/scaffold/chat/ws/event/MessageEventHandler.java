@@ -140,7 +140,7 @@ public class MessageEventHandler {
 							.filter(memberId -> !memberId.equals(sender.getUserId())).collect(Collectors.toList());
 					chatRoomMembersId.forEach(userId->{
 						senderData.put("chatRoomName", chatRoom.getChatRoomName());
-						String destinationToNotify = String.format(Destinations.MESSGE_EVENT_NOTIFICATION.getPath(), userId);
+						String destinationToNotify = String.format(Destinations.MESSAGE_EVENT_NOTIFICATION.getPath(), userId);
 						template.convertAndSend(destinationToNotify, senderData);
 					});
 				});

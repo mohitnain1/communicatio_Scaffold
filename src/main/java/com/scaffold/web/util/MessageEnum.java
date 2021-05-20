@@ -1,7 +1,7 @@
 package com.scaffold.web.util;
 
 public enum MessageEnum {
-	IMAGE("Image"), TEXT("Text");
+	IMAGE("IMAGE"), TEXT("TEXT"), UPDATE_MEMBER("UPDATE_MEMBER");
 	
 	private String value;
 	

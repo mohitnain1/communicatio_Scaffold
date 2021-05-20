@@ -12,7 +12,7 @@ public interface ChatRoomService {
 	
 	ResponseEntity<Object> createChatRoom(String chatRoomName, List<Long> members);
 		
-	List<UserDataTransfer> addMembers(ChatRoomUpdateParams params);
+	List<UserDataTransfer> updateUserInChatRoom(ChatRoomUpdateParams params);
 		
 	List<ChatRoomResponse> userChatRooms(long userId);	
 		

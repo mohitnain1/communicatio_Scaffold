@@ -16,6 +16,5 @@ public class ChatRoomUpdateParams {
 	}
 	public void setMembers(MemberAddOrRemoveRequest members) {
 		this.members = members;
-	}
-	
+	}	
 }
