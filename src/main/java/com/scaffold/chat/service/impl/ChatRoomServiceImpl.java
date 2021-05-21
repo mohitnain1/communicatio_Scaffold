@@ -168,7 +168,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	
 	private Message getUpdateMemberMessage(String chatRoomId, UserDataTransfer sender, List<Member> toAdd, List<Member> toRemove) {
 		Message message = new Message();
-		String messageContent = messageContent(sender, toAdd, toRemove);
+		String messageContent = buildMessage(sender, toAdd, toRemove);
 		String destinationToNotify = String.format(Destinations.UPDATE_MEMBERS.getPath(), chatRoomId);
 		message.setDestination(destinationToNotify);
 		message.setSenderId(sender.getUserId());
@@ -179,7 +179,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		return message;
 	}
 	
-	private String messageContent(UserDataTransfer sender, List<Member> toAdd, List<Member> toRemove) {
+	private String buildMessage(UserDataTransfer sender, List<Member> toAdd, List<Member> toRemove) {
 		StringBuffer messageContent = new StringBuffer();
 		StringBuilder usernamesToAdd = new StringBuilder();
 		StringBuilder usernameToRemove = new StringBuilder();
@@ -197,7 +197,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		}
 		else if (!toRemove.isEmpty()) {
 			toRemove.forEach(removeUser -> usernameToRemove.append(getUserBasicDetails(removeUser).getUsername() + " | "));
-			return messageContent.append(sender.getUserId()).append(" removed ").append(usernameToRemove.toString()).toString();
+			return messageContent.append(sender.getUsername()).append(" removed ").append(usernameToRemove.toString()).toString();
 		} 
 		return messageContent.toString();
 	}
