@@ -64,7 +64,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		if(existingChatRoom.isPresent()) {
 			ChatRoomResponse response = mapper.convertValue(existingChatRoom.get(), ChatRoomResponse.class);
 			response.setTotalMembers(existingChatRoom.get().getMembers().size());
-			return Response.generateResponse(HttpStatus.CONFLICT, response, "Chatroom name already exists.", false);
+			return Response.generateResponse(HttpStatus.ACCEPTED, response, "Chatroom name already exists.", false);
 		} else {		
 			List<Long> membersToAdd = chatRoomMembers.stream().filter( id -> userExists(id)).collect(Collectors.toList());
 			List<Member> members = membersToAdd.stream().map(member-> new Member(member, isOperatingUser(member))).collect(Collectors.toList());
@@ -168,7 +168,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	
 	private Message getUpdateMemberMessage(String chatRoomId, UserDataTransfer sender, List<Member> toAdd, List<Member> toRemove) {
 		Message message = new Message();
-		String messageContent = messageContent(sender, toAdd, toRemove);
+		String messageContent = buildMessage(sender, toAdd, toRemove);
 		String destinationToNotify = String.format(Destinations.UPDATE_MEMBERS.getPath(), chatRoomId);
 		message.setDestination(destinationToNotify);
 		message.setSenderId(sender.getUserId());
@@ -179,7 +179,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		return message;
 	}
 	
-	private String messageContent(UserDataTransfer sender, List<Member> toAdd, List<Member> toRemove) {
+	private String buildMessage(UserDataTransfer sender, List<Member> toAdd, List<Member> toRemove) {
 		StringBuffer messageContent = new StringBuffer();
 		StringBuilder usernamesToAdd = new StringBuilder();
 		StringBuilder usernameToRemove = new StringBuilder();
@@ -197,7 +197,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		}
 		else if (!toRemove.isEmpty()) {
 			toRemove.forEach(removeUser -> usernameToRemove.append(getUserBasicDetails(removeUser).getUsername() + " | "));
-			return messageContent.append(sender.getUserId()).append(" removed ").append(usernameToRemove.toString()).toString();
+			return messageContent.append(sender.getUsername()).append(" removed ").append(usernameToRemove.toString()).toString();
 		} 
 		return messageContent.toString();
 	}
