@@ -64,7 +64,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		if(existingChatRoom.isPresent()) {
 			ChatRoomResponse response = mapper.convertValue(existingChatRoom.get(), ChatRoomResponse.class);
 			response.setTotalMembers(existingChatRoom.get().getMembers().size());
-			return Response.generateResponse(HttpStatus.CONFLICT, response, "Chatroom name already exists.", false);
+			return Response.generateResponse(HttpStatus.ACCEPTED, response, "Chatroom name already exists.", false);
 		} else {		
 			List<Long> membersToAdd = chatRoomMembers.stream().filter( id -> userExists(id)).collect(Collectors.toList());
 			List<Member> members = membersToAdd.stream().map(member-> new Member(member, isOperatingUser(member))).collect(Collectors.toList());
