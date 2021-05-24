@@ -19,8 +19,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
@@ -61,7 +59,7 @@ public class FileUploadServiceImpl implements FileUploadService {
 	public List<Map<String, Object>> uploadFile(FileUploadParms fileParms, HttpServletRequest request) {
 		try {
 			List<FileData> files = fileParms.getFiles();
-			List<String> downloadsLinks = new ArrayList<>();
+			List<String> updatedFileNames = new ArrayList<>();
 			for (FileData file : files) {
 				String base64Data = file.getFileData().split(",")[1];
 				byte[] fileData = Base64.getDecoder().decode(base64Data.getBytes());
@@ -69,14 +67,11 @@ public class FileUploadServiceImpl implements FileUploadService {
 
 				ObjectMetadata metadata = new ObjectMetadata();
 				metadata.setContentLength(fileData.length);
-
 				uniqueFileName = System.currentTimeMillis() + "-" + UUID.randomUUID().toString().substring(0, 3) + "-"+ file.getFileName();
-				downloadsLinks.add(generateDownloadLink(request, uniqueFileName));
-				LOGGER.info("Uploading {} ", uniqueFileName);
 				amazonS3.putObject(bucketName, uniqueFileName, data, metadata);
-				LOGGER.info("Finished uploading file {}", uniqueFileName);
+				updatedFileNames.add(uniqueFileName);
 			}
-			return saveMessageAndReturnContent(downloadsLinks, fileParms);
+			return saveMessageAndReturnContent(updatedFileNames, fileParms);
 		} catch (AmazonServiceException ex) {
 			LOGGER.error("Error= {} while uploading file.", ex.getMessage());
 			return Collections.emptyList();
@@ -100,13 +95,6 @@ public class FileUploadServiceImpl implements FileUploadService {
 			response.add(messageEventHandler.getResponseForClient(sender, savedMessage));
 		}
 		return response;
-	}
-
-	private String generateDownloadLink(HttpServletRequest request, String fileName) {
-//		UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme(request.getScheme())
-//				.host(request.getLocalName()).port(request.getServerPort()).path("chat/download/" + fileName).build();
-//		return uriComponents.toUriString();
-		return "https://stage.oodleslab.com/chat-api/chat/download/" + fileName;
 	}
 
 	// Here Download file from s3 bucket....

@@ -19,6 +19,8 @@ import com.scaffold.chat.repository.ChatRoomRepository;
 import com.scaffold.chat.repository.MessageStoreRepository;
 import com.scaffold.chat.repository.UserRepository;
 import com.scaffold.chat.service.MessageService;
+import com.scaffold.chat.ws.event.MessageEventHandler;
+import com.scaffold.web.util.MessageEnum;
 
 @Service
 public class MessageServiceImpl implements MessageService {
@@ -26,6 +28,7 @@ public class MessageServiceImpl implements MessageService {
 	@Autowired public ChatRoomRepository chatRoomRepository;
 	@Autowired public MessageStoreRepository messageStoreRepository;
 	@Autowired private UserRepository userDetailsRepo;
+	@Autowired private MessageEventHandler messageEvent;
 	
 	@SuppressWarnings("unchecked")
 	@Override
@@ -66,11 +69,15 @@ public class MessageServiceImpl implements MessageService {
 	public Map<String, Object> mapMessageResponse(Message message) {
 		User user = userDetailsRepo.findByUserId(message.getSenderId());
 		Map<String, Object> res = new HashMap<>();
-		res.put("content", message.getContent());
 		res.put("sender", new UserDataTransfer(user.getUserId(), user.getImage(), user.getUsername()));
 		res.put("sendingTime", Timestamp.valueOf(message.getSendingTime()).getTime());
 		res.put("id", message.getId());
 		res.put("contentType", message.getContentType() == null ? "Text" : message.getContentType());
+		if(message.getContentType().equals(MessageEnum.IMAGE.getValue())) {
+			res.put("content", messageEvent.getPreSignedUrlForImages(message.getContent()));
+		} else {
+			res.put("content", message.getContent());
+		}
 		return res;
 	}
 
