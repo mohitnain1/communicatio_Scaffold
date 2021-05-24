@@ -1,6 +1,8 @@
 package com.scaffold.chat.ws.event;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -8,12 +10,16 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Component;
 
+import com.amazonaws.HttpMethod;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.scaffold.chat.datatransfer.UserDataTransfer;
 import com.scaffold.chat.domains.ChatPayload;
 import com.scaffold.chat.domains.Member;
@@ -36,6 +42,9 @@ public class MessageEventHandler {
 	@Autowired ChatRoomRepository chatRoomRepository;
 	@Autowired SimpMessagingTemplate template;
 	@Autowired UserRepository userRepository;
+	@Autowired AmazonS3 amazonS3;
+	@Value("${cloud.aws.bucket.name}")
+	private String bucketName;
 	
 	@Autowired
 	public MessageEventHandler(MessageStoreRepository messageStoreRepository) {
@@ -115,12 +124,25 @@ public class MessageEventHandler {
 	
 	public Map<String, Object> getResponseForClient(UserDataTransfer sender, com.scaffold.chat.domains.Message body) {
 		HashMap<String, Object> chatMessage = new HashMap<String, Object>();
-		chatMessage.put("content", body.getContent());
 		chatMessage.put("sender", sender);
 		chatMessage.put("sendingTime", Timestamp.valueOf(body.getSendingTime()).getTime());
 		chatMessage.put("id", body.getId());
-		chatMessage.put("contentType", body.getContentType());
+		if(body.getContentType().equals(MessageEnum.IMAGE.getValue())) {
+			chatMessage.put("contentType", body.getContentType());
+			chatMessage.put("content", getPreSignedUrlForImages(body.getContent()));
+		} else {
+			chatMessage.put("content", body.getContent());
+		}
 		return chatMessage;
+	}
+	
+	public String getPreSignedUrlForImages(String fileName) {
+		LocalDateTime expiration = LocalDateTime.now();
+		expiration = expiration.plusDays(5);
+		GeneratePresignedUrlRequest preSignedUrl = new GeneratePresignedUrlRequest(bucketName, fileName)
+				.withMethod(HttpMethod.GET)
+				.withExpiration(Date.from(expiration.atZone(ZoneId.systemDefault()).toInstant()));
+		return amazonS3.generatePresignedUrl(preSignedUrl).toExternalForm();
 	}
 	
 	public StompHeaderAccessor getHeaderAccessor(Message<?> message) {
