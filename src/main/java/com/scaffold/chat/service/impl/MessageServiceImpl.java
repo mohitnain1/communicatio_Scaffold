@@ -73,8 +73,9 @@ public class MessageServiceImpl implements MessageService {
 		res.put("sendingTime", Timestamp.valueOf(message.getSendingTime()).getTime());
 		res.put("id", message.getId());
 		res.put("contentType", message.getContentType() == null ? "Text" : message.getContentType());
-		if(message.getContentType().equals(MessageEnum.IMAGE.getValue())) {
+		if(message.getContentType().equals(MessageEnum.FILE.getValue())) {
 			res.put("content", messageEvent.getPreSignedUrlForImages(message.getContent()));
+			res.put("fileExtension", messageEvent.getFileExtension(message.getContent()));
 		} else {
 			res.put("content", message.getContent());
 		}

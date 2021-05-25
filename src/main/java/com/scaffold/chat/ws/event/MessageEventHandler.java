@@ -127,15 +127,22 @@ public class MessageEventHandler {
 		chatMessage.put("sender", sender);
 		chatMessage.put("sendingTime", Timestamp.valueOf(body.getSendingTime()).getTime());
 		chatMessage.put("id", body.getId());
-		if(body.getContentType().equals(MessageEnum.IMAGE.getValue())) {
+		if(body.getContentType().equals(MessageEnum.FILE.getValue())) {
 			chatMessage.put("contentType", body.getContentType());
 			chatMessage.put("content", getPreSignedUrlForImages(body.getContent()));
+			chatMessage.put("fileExtension", getFileExtension(body.getContent()));
 		} else {
+			chatMessage.put("contentType", body.getContentType());
 			chatMessage.put("content", body.getContent());
 		}
 		return chatMessage;
 	}
 	
+	public String getFileExtension(String content) {
+		String[] splitted = content.split("\\.");
+		return splitted[splitted.length -1];
+	}
+
 	public String getPreSignedUrlForImages(String fileName) {
 		LocalDateTime expiration = LocalDateTime.now();
 		expiration = expiration.plusDays(5);
