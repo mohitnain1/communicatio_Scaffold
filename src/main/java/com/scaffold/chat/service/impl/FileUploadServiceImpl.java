@@ -85,7 +85,7 @@ public class FileUploadServiceImpl implements FileUploadService {
 		String destination = "/app/chat." + fileParms.getChatRoomId();
 		for(String link  : downloadsLinks) {
 			ChatPayload payload = new ChatPayload(fileParms.getSenderId(), link, destination);
-			payload.setContentType(MessageEnum.IMAGE.getValue());
+			payload.setContentType(MessageEnum.FILE.getValue());
 			Message savedMessage = messageEventHandler.saveFileMessage(payload);
 			//Upload Message Notification in chatrooms
 			messageEventHandler.newMessageEvent(savedMessage, sender);

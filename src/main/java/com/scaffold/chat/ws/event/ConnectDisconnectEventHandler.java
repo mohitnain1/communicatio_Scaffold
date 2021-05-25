@@ -54,15 +54,10 @@ public class ConnectDisconnectEventHandler implements ChannelInterceptor {
 	}
 
 	private void handleSessionDisconnect(Message<?> message, StompHeaderAccessor accessor) {
-		String sessionId = (String) message.getHeaders().get(StompHeaderAccessor.SESSION_ID_HEADER);
 		UsernamePasswordAuthenticationToken auth = (UsernamePasswordAuthenticationToken) accessor.getUser();
-		UserEvent logout = userSessions.getParticipant(sessionId);
-		logout.setTime(System.currentTimeMillis());
-		userSessions.removeParticipant(sessionId);
 		User user = userDetailsRepository.findByEmailAndIsDeleted(auth.getPrincipal().toString(), false);
 		user.setOnline(false);
 		user.setLastSeen(LocalDateTime.now());
 		userDetailsRepository.save(user);
-		log.info("The user disconnected {}", logout);
 	}
 }
