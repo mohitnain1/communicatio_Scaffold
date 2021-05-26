@@ -1,15 +1,26 @@
 package com.scaffold.chat.domains;
 
+import java.time.LocalDateTime;
+
 public class Member {
 
 	private Long userId;
 	private boolean isCreator;
+	private LocalDateTime lastSeen;
 	
 	public Member(Long userId, boolean isCreator) {
 		this.userId = userId;
 		this.isCreator = isCreator;
 	}
 	
+	public LocalDateTime getLastSeen() {
+		return lastSeen;
+	}
+
+	public void setLastSeen(LocalDateTime lastSeen) {
+		this.lastSeen = lastSeen;
+	}
+
 	public Long getUserId() {
 		return userId;
 	}
