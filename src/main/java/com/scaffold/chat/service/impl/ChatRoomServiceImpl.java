@@ -70,13 +70,16 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 			return Response.generateResponse(HttpStatus.ACCEPTED, response, "Chatroom name already exists.", false);
 		} else {		
 			List<Long> membersToAdd = chatRoomMembers.stream().filter( id -> userExists(id)).distinct().collect(Collectors.toList());
-			List<Member> members = membersToAdd.stream().map(member-> new Member(member, isOperatingUser(member))).collect(Collectors.toList());
-			ChatRoom chatRoom = mapChatRoomCreationDetails(chatRoomName, members);		
-			
-			sendInviteToUsers(chatRoom, members.stream().filter(member -> !member.isCreator()).collect(Collectors.toList()));
-			ChatRoomResponse response = mapper.convertValue(chatRoom, ChatRoomResponse.class);
-			response.setTotalMembers(chatRoom.getMembers().size());
-			return Response.generateResponse(HttpStatus.CREATED, response, "Chatroom Created", true);
+			if(membersToAdd.size()>=2) {
+				List<Member> members = membersToAdd.stream().map(member-> new Member(member, isOperatingUser(member))).collect(Collectors.toList());
+				ChatRoom chatRoom = mapChatRoomCreationDetails(chatRoomName, members);		
+				
+				sendInviteToUsers(chatRoom, members.stream().filter(member -> !member.isCreator()).collect(Collectors.toList()));
+				ChatRoomResponse response = mapper.convertValue(chatRoom, ChatRoomResponse.class);
+				response.setTotalMembers(chatRoom.getMembers().size());
+				return Response.generateResponse(HttpStatus.CREATED, response, "Chatroom Created", true);
+			}
+			return Response.generateResponse(HttpStatus.LENGTH_REQUIRED, null, "Atleast two memebrs required for chatroom creation.", false);
 		}
 	}
 
