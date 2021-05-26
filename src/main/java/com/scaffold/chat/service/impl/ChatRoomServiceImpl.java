@@ -133,6 +133,15 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	@Override
 	public List<UserDataTransfer> updateUserInChatRoom(ChatRoomUpdateParams params) {
 		return chatRoomRepository.findByChatRoomIdAndIsDeleted(params.getChatRoomId(), false).map(chatRoom -> {
+			UserDataTransfer sender = getCurrentUserBasicDetails(getCurrentUser().getUsername());
+			List<Long> usersToAdd = params.getMembers().getAdd().stream().filter(id -> userExists(id)).collect(Collectors.toList());
+			List<Long> usersToRemove = params.getMembers().getRemove();
+			
+			usersToAdd.removeIf(user -> usersToAdd.contains(sender.getUserId()));
+			usersToRemove.removeIf(user -> usersToRemove.contains(sender.getUserId()));
+			params.getMembers().setAdd(usersToAdd);
+			params.getMembers().setRemove(usersToRemove);
+			
 			List<Member> updatedMembersList = resolveChatRoomMembers(params, chatRoom.getMembers());
 			List<Member> updatedUniqueList = updatedMembersList.stream().distinct().collect(Collectors.toList());
 			chatRoom.setMembers(updatedUniqueList);
@@ -158,10 +167,12 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 			response.put("content", generatedMessage.getContent());
 			response.put("sendingTime", Timestamp.valueOf(generatedMessage.getSendingTime()).getTime());
 			response.put("contentType", generatedMessage.getContentType());
-
-			simpMessagingTemplate.convertAndSend(generatedMessage.getDestination(), response);
-			messageEventHandler.newMessageEvent(generatedMessage, sender);
-			return saveMessageOfUpdatedUser(generatedMessage, chatRoomId);
+			
+			if (!toAdd.isEmpty() || !toRemove.isEmpty()) {
+				simpMessagingTemplate.convertAndSend(generatedMessage.getDestination(), response);
+				messageEventHandler.newMessageEvent(generatedMessage, sender);
+				return saveMessageOfUpdatedUser(generatedMessage, chatRoomId);
+			}	
 		}
 		return null;
 	}
@@ -230,7 +241,6 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		List<Member> toRemove = userIdToMemberMapper(params.getMembers().getRemove());
 		if(!toRemove.isEmpty()) {
 			existing.removeIf(userId -> (toRemove.contains(userId) && !userId.isCreator()));
-			LOGGER.info("Members removed successfully...");
 		}
 		existing.addAll(toAdd);
 		return existing;
