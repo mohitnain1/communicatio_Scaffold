@@ -131,6 +131,7 @@ public class MessageEventHandler {
 			chatMessage.put("contentType", body.getContentType());
 			chatMessage.put("content", getPreSignedUrlForImages(body.getContent()));
 			chatMessage.put("fileExtension", getFileExtension(body.getContent()));
+			chatMessage.put("fileName", body.getContent().split("\\|")[1]);
 		} else {
 			chatMessage.put("contentType", body.getContentType());
 			chatMessage.put("content", body.getContent());
