@@ -67,7 +67,7 @@ public class FileUploadServiceImpl implements FileUploadService {
 
 				ObjectMetadata metadata = new ObjectMetadata();
 				metadata.setContentLength(fileData.length);
-				uniqueFileName = System.currentTimeMillis() + "-" + UUID.randomUUID().toString().substring(0, 3) + "-"+ file.getFileName();
+				uniqueFileName = UUID.randomUUID().toString().substring(0, 8) + "|"+ file.getFileName();
 				amazonS3.putObject(bucketName, uniqueFileName, data, metadata);
 				updatedFileNames.add(uniqueFileName);
 			}

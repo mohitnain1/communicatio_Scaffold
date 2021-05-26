@@ -75,18 +75,8 @@ public class MessageServiceImpl implements MessageService {
 
 	public Map<String, Object> mapMessageResponse(Message message) {
 		User user = userDetailsRepo.findByUserId(message.getSenderId());
-		Map<String, Object> res = new HashMap<>();
-		res.put("sender", new UserDataTransfer(user.getUserId(), user.getImage(), user.getUsername()));
-		res.put("sendingTime", Timestamp.valueOf(message.getSendingTime()).getTime());
-		res.put("id", message.getId());
-		res.put("contentType", message.getContentType() == null ? "Text" : message.getContentType());
-		if(message.getContentType().equals(MessageEnum.FILE.getValue())) {
-			res.put("content", messageEvent.getPreSignedUrlForImages(message.getContent()));
-			res.put("fileExtension", messageEvent.getFileExtension(message.getContent()));
-		} else {
-			res.put("content", message.getContent());
-		}
-		return res;
+		return messageEvent.getResponseForClient(new UserDataTransfer(user.getUserId(), user.getImage(), 
+				user.getUsername()), message);
 	}
 
 	@Override
