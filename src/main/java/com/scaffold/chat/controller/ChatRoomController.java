@@ -34,9 +34,13 @@ public class ChatRoomController {
 	@Autowired public ChatRoomService chatRoomServices;
 	
 	@PostMapping(UrlConstants.CREATE_CHATROOM)
-	public ResponseEntity<Object> createChatRoom(@RequestBody ChatRoomCreationParams params, 
+	public ResponseEntity<Object> createChatRoom(@RequestBody ChatRoomCreationParams params,
 			@RequestHeader("Authorization") String accessToken) {
-		return chatRoomServices.createChatRoom(params.getChatRoomName(), params.getMembers());
+		try {
+			return chatRoomServices.createChatRoom(params.getChatRoomName(), params.getMembers());
+		} catch (Exception e) {
+			return Response.generateResponse(HttpStatus.EXPECTATION_FAILED, null, e.getLocalizedMessage(), false);
+		}
 	}
 	
 	@PutMapping(UrlConstants.UPDATE_MEMBERS)

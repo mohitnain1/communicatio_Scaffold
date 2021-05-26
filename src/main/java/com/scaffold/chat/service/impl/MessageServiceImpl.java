@@ -5,12 +5,19 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.CriteriaDefinition;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.scaffold.chat.datatransfer.UserDataTransfer;
+import com.scaffold.chat.domains.ChatRoom;
 import com.scaffold.chat.domains.Member;
 import com.scaffold.chat.domains.Message;
 import com.scaffold.chat.domains.MessageStore;
@@ -47,7 +54,7 @@ public class MessageServiceImpl implements MessageService {
 			}
 		}).orElse(null);
 	}
-	
+
 	private List<Map<String, Object>> getMembersResponse(List<Member> members) {
 		if (!members.isEmpty()) {
 			return members.stream().map(mem -> {
@@ -89,5 +96,4 @@ public class MessageServiceImpl implements MessageService {
 			return true;
 		}).orElse(false);
 	}
-	
 }

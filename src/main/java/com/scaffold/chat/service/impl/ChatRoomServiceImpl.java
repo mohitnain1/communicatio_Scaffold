@@ -59,8 +59,11 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	@Autowired private MessageEventHandler messageEventHandler;
 
 	@Override
-	public ResponseEntity<Object> createChatRoom(String chatRoomName, List<Long> chatRoomMembers) {
+	public ResponseEntity<Object> createChatRoom(String chatRoomName, List<Long> chatRoomMembers) throws IllegalArgumentException, Exception {
 		Optional<ChatRoom> existingChatRoom = chatRoomRepository.findByChatRoomNameAndIsDeleted(chatRoomName, false);
+		if(!isRoomMember(existingChatRoom)) {
+			throw new Exception("You're not a member of this room. Please connect room admin.");
+		}
 		if(existingChatRoom.isPresent()) {
 			ChatRoomResponse response = mapper.convertValue(existingChatRoom.get(), ChatRoomResponse.class);
 			response.setTotalMembers(existingChatRoom.get().getMembers().size());
@@ -68,7 +71,6 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		} else {		
 			List<Long> membersToAdd = chatRoomMembers.stream().filter( id -> userExists(id)).distinct().collect(Collectors.toList());
 			List<Member> members = membersToAdd.stream().map(member-> new Member(member, isOperatingUser(member))).collect(Collectors.toList());
-			System.out.println(members.stream().filter(member -> !member.isCreator()).collect(Collectors.toList()));
 			ChatRoom chatRoom = mapChatRoomCreationDetails(chatRoomName, members);		
 			
 			sendInviteToUsers(chatRoom, members.stream().filter(member -> !member.isCreator()).collect(Collectors.toList()));
@@ -76,6 +78,14 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 			response.setTotalMembers(chatRoom.getMembers().size());
 			return Response.generateResponse(HttpStatus.CREATED, response, "Chatroom Created", true);
 		}
+	}
+
+	private boolean isRoomMember(Optional<ChatRoom> existingChatRoom) throws Exception {
+		return existingChatRoom.map(room -> {
+			String email = getCurrentUser().getUsername();
+			User currentUser = userDetailsRepository.findByEmailAndIsDeleted(email, false);
+			return room.getMembers().stream().anyMatch(roomInSt -> roomInSt.getUserId().equals(currentUser.getUserId()));
+		}).orElse(false);
 	}
 
 	private boolean isOperatingUser(Long member) {
@@ -252,6 +262,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 				.all().stream().map(chatRoom -> {
 					ChatRoomResponse chatRoomResponse = mapper.convertValue(chatRoom, ChatRoomResponse.class);
 					chatRoomResponse.setTotalMembers(chatRoom.getMembers().size());
+					chatRoomResponse.setUnreadCount(getUserUnreadCount(chatRoom, userId));
 					return chatRoomResponse;
 				}).collect(Collectors.toList());
 	}
@@ -273,5 +284,16 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 			chatRoomRepository.save(room);
 			return true;
 		}).orElse(false);
+	}
+	
+	public long getUserUnreadCount(ChatRoom chatRoom, long userId) {
+		Member member = chatRoom.getMembers().stream().filter(memberInSt -> memberInSt.getUserId().equals(userId)).findFirst().get();
+		if(Objects.isNull(member.getLastSeen())) {
+			return chatRoom.getMessageStore().getMessageDetails().size();
+		} else {
+			return chatRoom.getMessageStore().getMessageDetails().stream()
+					.filter(message -> message.getSendingTime().isAfter(member.getLastSeen()))
+					.count();
+		}
 	}
 }
