@@ -9,7 +9,14 @@ public class ChatRoomResponse {
 	private String chatRoomName;
 	private String roomAccessKey;
 	private int totalMembers;
+	private long unreadCount;
 	
+	public long getUnreadCount() {
+		return unreadCount;
+	}
+	public void setUnreadCount(long unreadCount) {
+		this.unreadCount = unreadCount;
+	}
 	public String getChatRoomId() {
 		return chatRoomId;
 	}

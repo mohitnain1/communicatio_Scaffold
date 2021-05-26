@@ -10,7 +10,7 @@ import com.scaffold.chat.datatransfer.UserDataTransfer;
 
 public interface ChatRoomService {
 	
-	ResponseEntity<Object> createChatRoom(String chatRoomName, List<Long> members);
+	ResponseEntity<Object> createChatRoom(String chatRoomName, List<Long> members) throws IllegalArgumentException, Exception;
 		
 	List<UserDataTransfer> updateUserInChatRoom(ChatRoomUpdateParams params);
 		
