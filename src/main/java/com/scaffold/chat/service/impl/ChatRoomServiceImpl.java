@@ -61,10 +61,10 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	@Override
 	public ResponseEntity<Object> createChatRoom(String chatRoomName, List<Long> chatRoomMembers) throws IllegalArgumentException, Exception {
 		Optional<ChatRoom> existingChatRoom = chatRoomRepository.findByChatRoomNameAndIsDeleted(chatRoomName, false);
-		if(!isRoomMember(existingChatRoom)) {
-			throw new Exception("You're not a member of this room. Please connect room admin.");
-		}
 		if(existingChatRoom.isPresent()) {
+			if(!isRoomMember(existingChatRoom.get())) {
+				throw new Exception("You're not a member of this room. Please connect room admin.");
+			}
 			ChatRoomResponse response = mapper.convertValue(existingChatRoom.get(), ChatRoomResponse.class);
 			response.setTotalMembers(existingChatRoom.get().getMembers().size());
 			return Response.generateResponse(HttpStatus.ACCEPTED, response, "Chatroom name already exists.", false);
@@ -80,12 +80,10 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		}
 	}
 
-	private boolean isRoomMember(Optional<ChatRoom> existingChatRoom) throws Exception {
-		return existingChatRoom.map(room -> {
-			String email = getCurrentUser().getUsername();
-			User currentUser = userDetailsRepository.findByEmailAndIsDeleted(email, false);
-			return room.getMembers().stream().anyMatch(roomInSt -> roomInSt.getUserId().equals(currentUser.getUserId()));
-		}).orElse(false);
+	private boolean isRoomMember(ChatRoom chatRoom) throws Exception {
+		String email = getCurrentUser().getUsername();
+		User currentUser = userDetailsRepository.findByEmailAndIsDeleted(email, false);
+		return chatRoom.getMembers().stream().anyMatch(roomInSt -> roomInSt.getUserId().equals(currentUser.getUserId()));
 	}
 
 	private boolean isOperatingUser(Long member) {
