@@ -147,13 +147,14 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 			UserDataTransfer sender = getCurrentUserBasicDetails(getCurrentUser().getUsername());
 			List<Long> usersToAdd = params.getMembers().getAdd().stream().filter(id -> userExists(id)).collect(Collectors.toList());
 			List<Long> usersToRemove = params.getMembers().getRemove();
+			List<Member> existingMembers = chatRoom.getMembers();
 			
-			usersToAdd.removeIf(user -> usersToAdd.contains(sender.getUserId()));
 			usersToRemove.removeIf(user -> usersToRemove.contains(sender.getUserId()));
+			usersToAdd.removeIf(userId -> existingMembers.stream().anyMatch(mem -> mem.getUserId().equals(userId)));
 			params.getMembers().setAdd(usersToAdd);
 			params.getMembers().setRemove(usersToRemove);
 			
-			List<Member> updatedMembersList = resolveChatRoomMembers(params, chatRoom.getMembers());
+			List<Member> updatedMembersList = resolveChatRoomMembers(params, existingMembers);
 			List<Member> updatedUniqueList = updatedMembersList.stream().distinct().collect(Collectors.toList());
 			chatRoom.setMembers(updatedUniqueList);
 			updatedUserNotification(params);
@@ -247,11 +248,11 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	}
 	
 	private List<Member> resolveChatRoomMembers(ChatRoomUpdateParams params, List<Member> existing) {
-		List<Long> usersToAdd = params.getMembers().getAdd().stream().filter(id -> userExists(id)).collect(Collectors.toList());
-		List<Member> toAdd = userIdToMemberMapper(usersToAdd);
-		List<Member> toRemove = userIdToMemberMapper(params.getMembers().getRemove());
+		List<Member> toAdd = userIdToMemberMapper(params.getMembers().getAdd());
+		List<Long> toRemove = params.getMembers().getRemove();
+		//Remove admin user if present in remove list
 		if(!toRemove.isEmpty()) {
-			existing.removeIf(userId -> (toRemove.contains(userId) && !userId.isCreator()));
+			existing.removeIf(member -> (toRemove.contains(member.getUserId()) && !member.isCreator()));
 		}
 		existing.addAll(toAdd);
 		return existing;
