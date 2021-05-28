@@ -32,18 +32,17 @@ public class ConnectDisconnectEventHandler implements ChannelInterceptor {
 	@Override
 	public Message<?> preSend(Message<?> message, MessageChannel channel) {
 		StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-			try {
-			        if (!Objects.isNull(accessor.getCommand()) && accessor.getCommand().equals(StompCommand.CONNECT)) {
-				        handleSessionConnected(message, accessor);
-			        } else
-			        if (!Objects.isNull(accessor.getCommand()) && accessor.getCommand().equals(StompCommand.DISCONNECT)) {
-				        handleSessionDisconnect(message, accessor);
-			        }
-			        return message;
-			}catch(Exception e) {
-			    System.out.println("Error Occured ");
-			    return message;
+		try {
+			if (!Objects.isNull(accessor.getCommand()) && accessor.getCommand().equals(StompCommand.CONNECT)) {
+				handleSessionConnected(message, accessor);
+			} else if (!Objects.isNull(accessor.getCommand()) && accessor.getCommand().equals(StompCommand.DISCONNECT)) {
+				handleSessionDisconnect(message, accessor);
 			}
+		}catch(Exception e) {
+			System.out.println("Error Occured on stomp Command : " + accessor.getCommand());
+			log.error("Error Occured in the system {}", e.getLocalizedMessage());
+		}
+		return message;
 	}
 
 	private void handleSessionConnected(Message<?> message, StompHeaderAccessor accessor) {

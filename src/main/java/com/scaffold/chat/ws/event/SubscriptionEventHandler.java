@@ -46,7 +46,6 @@ public class SubscriptionEventHandler implements ApplicationListener<SessionSubs
 		CompletableFuture.supplyAsync(() -> {
 			String email = user.getPrincipal().toString();
 			long userId = userService.loadUserByEmail(email).getUserId();
-			System.out.println("Current UserId : " + userId);
 			if(headerAccessor.getDestination().startsWith("/topic/conversations")) {
 				String chatRoomId = headerAccessor.getDestination().replace("/topic/conversations.", "");
 				chatRoomRepository.findByChatRoomIdAndIsDeleted(chatRoomId, false).map(room -> {
@@ -57,7 +56,6 @@ public class SubscriptionEventHandler implements ApplicationListener<SessionSubs
 						}
 						return member;
 					}).collect(Collectors.toList());
-					System.out.println("members : " + members.toString());
 					room.setMembers(members);
 					chatRoomRepository.save(room);
 					return true;
