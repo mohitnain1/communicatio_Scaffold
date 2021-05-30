@@ -37,6 +37,8 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
 			.setSystemPasscode(properties.getBrokerPassword())
 			.setRelayHost(properties.getBrokerHostName())
 			.setRelayPort(properties.getBrokerPort());
+			.setClientLogin(properties.getBrokerUsername())
+            .setClientPasscode(properties.getBrokerPassword());
 	}	
 
 	@Override
