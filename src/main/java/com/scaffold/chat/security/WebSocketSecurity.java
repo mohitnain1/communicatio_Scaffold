@@ -1,6 +1,7 @@
 package com.scaffold.chat.security;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.security.config.annotation.web.messaging.MessageSecurityMetadataSourceRegistry;
 import org.springframework.security.config.annotation.web.socket.AbstractSecurityWebSocketMessageBrokerConfigurer;
 
@@ -9,7 +10,8 @@ public class WebSocketSecurity extends AbstractSecurityWebSocketMessageBrokerCon
 
 	@Override
 	protected void configureInbound(MessageSecurityMetadataSourceRegistry messages) {
-		messages.anyMessage().authenticated();
+		messages.simpTypeMatchers(SimpMessageType.DISCONNECT).permitAll()
+			.anyMessage().authenticated();
 	}
 
 	@Override
