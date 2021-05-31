@@ -36,7 +36,9 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
 		registry.enableStompBrokerRelay("/topic", "/queue").setSystemLogin(properties.getBrokerUsername())
 			.setSystemPasscode(properties.getBrokerPassword())
 			.setRelayHost(properties.getBrokerHostName())
-			.setRelayPort(properties.getBrokerPort());
+			.setRelayPort(properties.getBrokerPort())
+			.setClientLogin(properties.getBrokerUsername())
+            .setClientPasscode(properties.getBrokerPassword());
 	}	
 
 	@Override
