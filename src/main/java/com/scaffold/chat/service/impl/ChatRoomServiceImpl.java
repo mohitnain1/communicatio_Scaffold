@@ -79,7 +79,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 				response.setTotalMembers(chatRoom.getMembers().size());
 				return Response.generateResponse(HttpStatus.CREATED, response, "Chatroom Created", true);
 			}
-			return Response.generateResponse(HttpStatus.LENGTH_REQUIRED, null, "Atleast two memebrs required for chatroom creation.", false);
+			return Response.generateResponse(HttpStatus.EXPECTATION_FAILED, null, "At least two members required for room. It seems chat is not enabled for some users.", false);
 		}
 	}
 
