@@ -124,7 +124,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		membersSendInvite.forEach(member -> {
 			String destination = String.format(Destinations.INVITATION.getPath(), member.getUserId());
 			simpMessagingTemplate.convertAndSend(destination ,response);
-			new Thread(() -> inviteOfflineUsersByEmail(member.getUserId(), chatRoom, currentUser)).start();
+			//new Thread(() -> inviteOfflineUsersByEmail(member.getUserId(), chatRoom, currentUser)).start();
 		});
 	}
 	
