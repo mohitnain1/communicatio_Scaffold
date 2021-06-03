@@ -123,7 +123,7 @@ public class UserServiceImpl implements UserService, UserDetailsService, Command
 
 	@Override
 	public void run(String... args) throws Exception {
-		User user = userRepository.findByEmailAndIsDeleted("scaffold-admin@oodles.io", false);
+		User user = userRepository.findByEmailAndIsDeleted(properties.getAdminEmail(), false);
 		if(Objects.nonNull(user)) {
 			return;
 		} else {
