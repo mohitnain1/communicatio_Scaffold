@@ -1,7 +1,9 @@
 package com.scaffold.chat.service.impl;
 
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +13,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.mail.internet.MimeMessage;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,9 +22,12 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scaffold.chat.datatransfer.ChatRoomResponse;
@@ -42,13 +49,17 @@ import com.scaffold.web.util.MessageEnum;
 import com.scaffold.web.util.Response;
 import com.scaffold.web.util.SimpleIdGenerator;
 
+import freemarker.template.Template;
+
 @Service
 public class ChatRoomServiceImpl implements ChatRoomService {
 	
 	@Autowired JwtUtil jwtUtil;
 	@Autowired MongoTemplate mongoTemplate;
+	@Autowired JavaMailSender mailSender;
+	@Autowired freemarker.template.Configuration freemarkerTemplate;
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(ChatRoomServiceImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(ChatRoomServiceImpl.class);
 	private final SimpleIdGenerator idGenerator = new SimpleIdGenerator();
 
 	@Autowired public ChatRoomRepository chatRoomRepository;
@@ -113,7 +124,37 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		membersSendInvite.forEach(member -> {
 			String destination = String.format(Destinations.INVITATION.getPath(), member.getUserId());
 			simpMessagingTemplate.convertAndSend(destination ,response);
+			new Thread(() -> inviteOfflineUsersByEmail(member.getUserId(), chatRoom, currentUser)).start();
 		});
+	}
+	
+	private void inviteOfflineUsersByEmail(Long userId, ChatRoom chatRoom, User creator) {
+		User user = userDetailsRepository.findByUserId(userId).get();
+		boolean userStatus = user.isOnline();
+		String userEmail = user.getEmail();
+		if(userStatus==false){
+			try {
+				Map<String, Object> model = new HashMap<>();
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm a");
+				model.put("username", user.getUsername());
+				model.put("chatRoomName", chatRoom.getChatRoomName());
+				model.put("creationDate", chatRoom.getCreationDate().format(formatter));
+				model.put("creatorName", creator.getUsername());
+				MimeMessage message = mailSender.createMimeMessage();
+				MimeMessageHelper helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
+				Template template = freemarkerTemplate.getTemplate("email-template.ftl"); 
+				String htmlPage = FreeMarkerTemplateUtils.processTemplateIntoString(template, model);
+			
+				helper.setFrom("${MAIL_USERNAME}");
+				helper.setSubject("Start a new conversation by "+creator.getUsername());
+				helper.setTo(userEmail);
+				helper.setText(htmlPage, true);
+				mailSender.send(message);
+			} catch (Exception e) {
+				log.error("Error in Email sending.." + e);
+				e.printStackTrace();
+			}
+		}
 	}
 
 	private ChatRoom mapChatRoomCreationDetails(String chatRoomName, List<Member> members) {
