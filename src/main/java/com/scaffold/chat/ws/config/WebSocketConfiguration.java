@@ -15,7 +15,6 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 
 import com.scaffold.chat.repository.UserRepository;
 import com.scaffold.chat.ws.event.ConnectDisconnectEventHandler;
-import com.scaffold.chat.ws.event.VideoCallHandler;
 import com.scaffold.chat.ws.event.WebSocketAuthenticationFilter;
 import com.scaffold.security.jwt.JwtUtil;
 import com.scaffold.web.util.ScaffoldProperties;
