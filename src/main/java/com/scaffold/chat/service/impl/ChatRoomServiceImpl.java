@@ -28,7 +28,6 @@ import com.scaffold.chat.datatransfer.ChatRoomResponse;
 import com.scaffold.chat.datatransfer.ChatRoomUpdateParams;
 import com.scaffold.chat.datatransfer.UserDataTransfer;
 import com.scaffold.chat.domains.ChatRoom;
-import com.scaffold.chat.domains.Email;
 import com.scaffold.chat.domains.Member;
 import com.scaffold.chat.domains.Message;
 import com.scaffold.chat.domains.MessageStore;
@@ -45,14 +44,11 @@ import com.scaffold.web.util.MessageEnum;
 import com.scaffold.web.util.Response;
 import com.scaffold.web.util.SimpleIdGenerator;
 
-import freemarker.template.Template;
-
 @Service
 public class ChatRoomServiceImpl implements ChatRoomService {
 	
 	@Autowired JwtUtil jwtUtil;
 	@Autowired MongoTemplate mongoTemplate;
-	@Autowired freemarker.template.Configuration freemarkerTemplate;
 	
 	private static final Logger log = LoggerFactory.getLogger(ChatRoomServiceImpl.class);
 	private final SimpleIdGenerator idGenerator = new SimpleIdGenerator();
@@ -125,23 +121,19 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	}
 	
 	private void inviteOfflineUsersByEmail(Long userId, ChatRoom chatRoom, User sender) {
-		try {
-			User user = userDetailsRepository.findByUserId(userId).get();
-			boolean userStatus = user.isOnline();
-			String toEmail = user.getEmail();
-			if (userStatus == false) {
-				Map<String, Object> context = new HashMap<>();
-				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm a");
-				context.put("username", user.getUsername());
-				context.put("chatRoomName", chatRoom.getChatRoomName());
-				context.put("creationDate", chatRoom.getCreationDate().format(formatter));
-				context.put("creatorName", sender.getUsername());
-				String subject = "Start a new conversation by " + sender.getUsername();
-				Template template = freemarkerTemplate.getTemplate("email-template.ftl");
-				emailService.sendHtmlMail(new Email(toEmail, subject, context, template));
-			} 
-		} catch (Exception e) {
-			log.error(e.getMessage());
+		User user = userDetailsRepository.findByUserId(userId).get();
+		boolean userStatus = user.isOnline();
+		String toAddress = user.getEmail();
+		if (userStatus == false) {
+			Map<String, Object> context = new HashMap<>();
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm a");
+			context.put("username", user.getUsername());
+			context.put("chatRoomName", chatRoom.getChatRoomName());
+			context.put("creationDate", chatRoom.getCreationDate().format(formatter));
+			context.put("creatorName", sender.getUsername());
+			String subject = "Start a new conversation by " + sender.getUsername();
+			String templateName="email-template.ftl";
+			emailService.sendHtmlMail(toAddress, subject, context, templateName);
 		}
 	}
 
