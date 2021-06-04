@@ -3,6 +3,8 @@ package com.scaffold.chat.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.ui.freemarker.FreeMarkerConfigurationFactoryBean;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -11,7 +13,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
 @Configuration
-public class ChatFileConfiguration {
+public class ChatConfiguration {
 	
 	private String accessKeyId;
 	
@@ -27,6 +29,14 @@ public class ChatFileConfiguration {
 		final BasicAWSCredentials basicAWSCredentials = new BasicAWSCredentials(accessKeyId, secretAccessKey);
 		return AmazonS3ClientBuilder.standard().withRegion(Regions.fromName(region)).withCredentials
 				(new AWSStaticCredentialsProvider(basicAWSCredentials)).build();
+	}
+	
+	@Primary
+	@Bean
+	public FreeMarkerConfigurationFactoryBean factoryBean() {
+		FreeMarkerConfigurationFactoryBean factoryBean= new FreeMarkerConfigurationFactoryBean();
+		factoryBean.setTemplateLoaderPath("classpath:/templates/");
+		return factoryBean;
 	}
 
 }
