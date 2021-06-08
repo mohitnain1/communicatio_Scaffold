@@ -27,7 +27,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter{
 	protected void configure(HttpSecurity http) throws Exception {
 		http.cors().and().csrf().disable().headers().frameOptions().disable();
 		http.authorizeRequests().antMatchers("/broker-status-monitoring", "/chat/sockjs/**", 
-				"/chat/download/**", "/chat/groupcall/**")
+				"/chat/download/**", "/chat/ws/**")
 				.permitAll()
 				.anyRequest().authenticated().and()
 				.addFilter(new ScaffoldAuthenticationFilter(authenticationManager(), userDetailsService, jwtUtil))
