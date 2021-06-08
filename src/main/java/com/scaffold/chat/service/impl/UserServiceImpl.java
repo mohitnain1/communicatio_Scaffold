@@ -29,7 +29,7 @@ import com.scaffold.chat.service.UserService;
 import com.scaffold.web.util.ScaffoldProperties;
 
 @Service
-public class UserServiceImpl implements UserService, UserDetailsService, CommandLineRunner{
+public class UserServiceImpl implements UserService, UserDetailsService {
 
 	@Autowired MongoTemplate mongoTemplate;
 	@Autowired ObjectMapper objectMapper;
@@ -118,19 +118,5 @@ public class UserServiceImpl implements UserService, UserDetailsService, Command
 	
 	public User loadUserByEmail(String email) {
 		return userRepository.findByEmailAndIsDeleted(email, false);
-	}
-
-
-	@Override
-	public void run(String... args) throws Exception {
-		User user = userRepository.findByEmailAndIsDeleted(properties.getAdminEmail(), false);
-		if(Objects.nonNull(user)) {
-			return;
-		} else {
-			List<String> roles = Arrays.asList("ROLE_ADMIN", "ROLE_APP_ADMIN", "ROLE_SUPERADMIN");
-			String password = encodeDetails(properties.getAdminPassword());
-			User adminUser = new User(16052021L, properties.getAdminUsername(), "NA", properties.getAdminEmail(),password , roles);
-			mongoTemplate.save(adminUser);
-		}
 	}
 }

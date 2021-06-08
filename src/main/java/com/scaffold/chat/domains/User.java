@@ -18,7 +18,7 @@ public @Data class User {
 	@Id
 	private String id;
 	@Indexed(unique = true)
-	private long userId;
+	private Long userId;
 	private String username;
 	private String image;
 	private LocalDateTime lastSeen;
