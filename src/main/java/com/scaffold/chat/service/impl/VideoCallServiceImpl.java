@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +15,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.scaffold.chat.datatransfer.UserDataTransfer;
-import com.scaffold.chat.datatransfer.VideoCallParams;
 import com.scaffold.chat.domains.ChatRoom;
 import com.scaffold.chat.domains.Member;
 import com.scaffold.chat.domains.Message;
@@ -39,12 +39,15 @@ public class VideoCallServiceImpl implements VideoCallService {
 	private final SimpleIdGenerator idGenerator = new SimpleIdGenerator();
 	
 	@Override
-	public Object startCall(VideoCallParams params) {
-		ChatRoom chatRoom = chatRoomRepository.findByChatRoomIdAndIsDeleted(params.getChatRoomId(), false).get();
-		List<Member> members = chatRoom.getMembers();
-		UserDataTransfer caller = getCurrentUserBasicDetails(getCurrentUser().getUsername());
-		Message callNotification = videoCallNotification(caller, chatRoom, members);
-		return callNotification;
+	public Object startCall(String chatRoomId) {
+		Optional<ChatRoom> chatRoom = chatRoomRepository.findByChatRoomIdAndIsDeleted(chatRoomId, false);
+		if(chatRoom.isPresent()) {
+			List<Member> members = chatRoom.get().getMembers();
+			UserDataTransfer caller = getCurrentUserBasicDetails(getCurrentUser().getUsername());
+			Message callNotification = videoCallNotification(caller, chatRoom.get(), members);
+			return callNotification;
+		}
+		return null;
 	}
 	
 	private Message videoCallNotification(UserDataTransfer caller, ChatRoom chatRoom, List<Member> members) {
