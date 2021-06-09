@@ -2,7 +2,6 @@ package com.scaffold.chat.service.impl;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +36,7 @@ import com.scaffold.chat.repository.MessageStoreRepository;
 import com.scaffold.chat.repository.UserRepository;
 import com.scaffold.chat.service.ChatRoomService;
 import com.scaffold.chat.service.EmailService;
+import com.scaffold.chat.web.MessageConstants;
 import com.scaffold.chat.ws.event.MessageEventHandler;
 import com.scaffold.security.jwt.JwtUtil;
 import com.scaffold.web.util.Destinations;
@@ -122,18 +122,14 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	
 	private void inviteOfflineUsersByEmail(Long userId, ChatRoom chatRoom, User sender) {
 		User user = userDetailsRepository.findByUserId(userId).get();
-		boolean userStatus = user.isOnline();
-		String toAddress = user.getEmail();
-		if (userStatus == false) {
+		if (user.isOnline() == false) {
 			Map<String, Object> context = new HashMap<>();
-			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm a");
 			context.put("username", user.getUsername());
 			context.put("chatRoomName", chatRoom.getChatRoomName());
-			context.put("creationDate", chatRoom.getCreationDate().format(formatter));
+			context.put("creationDate", Timestamp.valueOf(chatRoom.getCreationDate()).getTime());
 			context.put("creatorName", sender.getUsername());
-			String subject = "Start a new conversation by " + sender.getUsername();
-			String templateName="email-template.ftl";
-			emailService.sendHtmlMail(toAddress, subject, context, templateName);
+			String subject = MessageConstants.CHAT_CREATION_EMAIL_SUBJECT+" " + sender.getUsername();
+			emailService.sendHtmlMail(user.getEmail(), subject, context, "offline-user-email-template.ftl");
 		}
 	}
 
