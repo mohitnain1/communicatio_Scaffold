@@ -176,6 +176,7 @@ public class MessageEventHandler {
 				chatRoomId= messagePayload.getDestination().replace("/topic/conversations.", "");
 				if(messagePayload.getContentType().equals((MessageEnum.UPDATE_MEMBER).getValue())) {
 					senderData.put("members", chatRoomService.getChatRoomMembers(chatRoomId));
+					senderData.put("chatRoomId", chatRoomId);
 				}
 			}
 			if(Objects.nonNull(chatRoomId)) {
