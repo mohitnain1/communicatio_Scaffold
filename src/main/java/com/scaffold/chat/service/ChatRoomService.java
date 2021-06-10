@@ -18,4 +18,7 @@ public interface ChatRoomService {
 		
 	boolean deleteChatRoom(String chatRoomId);
 	
+	List<UserDataTransfer> getChatRoomMembers(String chatRoomId);
+	
+	
 }
