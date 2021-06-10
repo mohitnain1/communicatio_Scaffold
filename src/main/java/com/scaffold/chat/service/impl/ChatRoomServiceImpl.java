@@ -112,6 +112,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		response.put("chatRoomName", chatRoom.getChatRoomName());
 		response.put("roomAccessKey", chatRoom.getRoomAccessKey());
 		response.put("totalMembers", chatRoom.getMembers().size());
+		response.put("contentType", MessageEnum.ADD.getValue());
 		response.put("creator", new UserDataTransfer(currentUser.getUserId(), currentUser.getImage(), currentUser.getUsername()));
 		membersSendInvite.forEach(member -> {
 			String destination = String.format(Destinations.INVITATION.getPath(), member.getUserId());
@@ -177,8 +178,20 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 			chatRoom = chatRoomRepository.save(chatRoom);
 			updatedUserNotification(params);
 			sendInviteToUsers(chatRoom, userIdToMemberMapper(params.getMembers().getAdd()));
+			dispatchUserRemovalEvent(usersToRemove, chatRoom, sender.getUsername());
 			return memberToUserCredential(chatRoom.getMembers());
 		}).orElseGet(ArrayList::new);
+	}
+
+	private void dispatchUserRemovalEvent(List<Long> usersToRemove, ChatRoom chatRoom, String currentUsername) {
+		Map<String, Object> response = new HashMap<>();
+		response.put("contentType", MessageEnum.REMOVE.getValue());
+		response.put("chatRoomId", chatRoom.getChatRoomId());
+		response.put("content", "You've been removed from " + chatRoom.getChatRoomName() + " by " + currentUsername);
+		usersToRemove.forEach(userId -> {
+			String destination = String.format(Destinations.INVITATION.getPath(), userId);
+			simpMessagingTemplate.convertAndSend(destination ,response);
+		});
 	}
 
 	private Message updatedUserNotification(ChatRoomUpdateParams params) {
@@ -196,6 +209,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 			response.put("content", generatedMessage.getContent());
 			response.put("sendingTime", Timestamp.valueOf(generatedMessage.getSendingTime()).getTime());
 			response.put("contentType", generatedMessage.getContentType());
+			response.put("members", getChatRoomMembers(chatRoomId));
 			
 			if (!toAdd.isEmpty() || !toRemove.isEmpty()) {
 				simpMessagingTemplate.convertAndSend(generatedMessage.getDestination(), response);
