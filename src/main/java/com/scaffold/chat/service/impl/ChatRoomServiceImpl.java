@@ -174,8 +174,8 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 			List<Member> updatedMembersList = resolveChatRoomMembers(params, existingMembers);
 			List<Member> updatedUniqueList = updatedMembersList.stream().distinct().collect(Collectors.toList());
 			chatRoom.setMembers(updatedUniqueList);
-			updatedUserNotification(params);
 			chatRoom = chatRoomRepository.save(chatRoom);
+			updatedUserNotification(params);
 			sendInviteToUsers(chatRoom, userIdToMemberMapper(params.getMembers().getAdd()));
 			return memberToUserCredential(chatRoom.getMembers());
 		}).orElseGet(ArrayList::new);
@@ -324,5 +324,12 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 					.filter(message -> message.getSendingTime().isAfter(member.getLastSeen()))
 					.count();
 		}
+	}
+
+	@Override
+	public List<UserDataTransfer> getChatRoomMembers(String chatRoomId) {
+		return chatRoomRepository.findByChatRoomIdAndIsDeleted(chatRoomId, false).map(chatRoom -> {
+			return memberToUserCredential(chatRoom.getMembers());
+		}).orElseGet(ArrayList::new);
 	}
 }
