@@ -1,7 +1,7 @@
 package com.scaffold.web.util;
 
 public enum MessageEnum {
-	FILE("FILE"), TEXT("TEXT"), UPDATE_MEMBER("UPDATE_MEMBER");
+	FILE("FILE"), TEXT("TEXT"), UPDATE_MEMBER("UPDATE_MEMBER"), START_CALL("VIDEO_CALL"), REMOVE("REMOVE"), ADD("ADD");
 	
 	private String value;
 	

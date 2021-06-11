@@ -39,8 +39,7 @@ public class ConnectDisconnectEventHandler implements ChannelInterceptor {
 				handleSessionDisconnect(message, accessor);
 			}
 		}catch(Exception e) {
-			System.out.println("Error Occured on stomp Command : " + accessor.getCommand());
-			log.error("Error Occured in the system {}", e.getLocalizedMessage());
+			log.info("Handled exception on disconnect command {} ", e.getLocalizedMessage());
 		}
 		return message;
 	}

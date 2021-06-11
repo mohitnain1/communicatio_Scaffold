@@ -22,6 +22,7 @@ public class UrlConstants {
 	
 	public static final String GET_ALL_MESSAGES = PREFIX +"/messages";
 	
+	public static final String START_VIDEO_CALL = PREFIX +"/call";
 	
 	public static final String FILE_UPLOAD  = PREFIX +"/upload";
 	public static final String FILE_DOWNLOAD  = PREFIX +"/download/{fileName}";

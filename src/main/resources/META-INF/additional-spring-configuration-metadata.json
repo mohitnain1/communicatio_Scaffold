@@ -38,6 +38,10 @@
     "name": "com.scaffold.broker-password",
     "type": "java.lang.String",
     "description": "Broker password to connect'"
+  },
+  {
+    "name": "com.scaffold.mail.override",
+    "type": "java.lang.String",
+    "description": "A description for 'com.scaffold.mail.override'"
   }
-  
 ]}

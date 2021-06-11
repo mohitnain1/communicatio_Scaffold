@@ -6,6 +6,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
@@ -18,16 +19,19 @@ import com.scaffold.web.util.ScaffoldProperties;
 
 @Order(Ordered.HIGHEST_PRECEDENCE + 99)
 @Configuration
+@EnableWebSocket
 @EnableWebSocketMessageBroker
 public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
 	
 	@Autowired UserRepository usersDetailRepository;
 	@Autowired ScaffoldProperties properties;
 	@Autowired JwtUtil jwtUtil;
-	
+
 	@Override
 	public void registerStompEndpoints(StompEndpointRegistry registry) {
 		registry.addEndpoint("/chat/sockjs").setAllowedOriginPatterns("*").withSockJS();
+		registry.addEndpoint("/chat/groupcall").setAllowedOriginPatterns("*");
+		registry.addEndpoint("/chat/ws").setAllowedOriginPatterns("*");
 	}
 	
 	@Override

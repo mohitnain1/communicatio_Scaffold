@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@ import com.scaffold.chat.domains.User;
 import com.scaffold.chat.repository.ChatRoomRepository;
 import com.scaffold.chat.repository.MessageStoreRepository;
 import com.scaffold.chat.repository.UserRepository;
+import com.scaffold.chat.service.ChatRoomService;
 import com.scaffold.web.util.Destinations;
 import com.scaffold.web.util.MessageEnum;
 import com.scaffold.web.util.SimpleIdGenerator;
@@ -42,6 +44,7 @@ public class MessageEventHandler {
 	@Autowired ChatRoomRepository chatRoomRepository;
 	@Autowired SimpMessagingTemplate template;
 	@Autowired UserRepository userRepository;
+	@Autowired ChatRoomService chatRoomService;
 	@Autowired AmazonS3 amazonS3;
 	@Value("${cloud.aws.bucket.name}")
 	private String bucketName;
@@ -164,8 +167,19 @@ public class MessageEventHandler {
 			senderData.put("sender", sender);
 			senderData.put("content", messagePayload.getContent());
 			senderData.put("sendingTime", new Date().getTime());
+			senderData.put("contentType", messagePayload.getContentType());
+			String chatRoomId=null;
 			if(messagePayload.getDestination().startsWith("/app/chat")) {
-				String chatRoomId = messagePayload.getDestination().replace("/app/chat.", "");
+				chatRoomId= messagePayload.getDestination().replace("/app/chat.", "");
+			}
+			if( messagePayload.getDestination().startsWith("/topic/conversations")) {
+				chatRoomId= messagePayload.getDestination().replace("/topic/conversations.", "");
+				if(messagePayload.getContentType().equals((MessageEnum.UPDATE_MEMBER).getValue())) {
+					senderData.put("members", chatRoomService.getChatRoomMembers(chatRoomId));
+					senderData.put("chatRoomId", chatRoomId);
+				}
+			}
+			if(Objects.nonNull(chatRoomId)) {
 				chatRoomRepository.findByChatRoomIdAndIsDeleted(chatRoomId, false).ifPresent(chatRoom ->{				
 					List<Long> chatRoomMembersId = chatRoom.getMembers().stream().map(Member::getUserId)
 							.filter(memberId -> !memberId.equals(sender.getUserId())).collect(Collectors.toList());

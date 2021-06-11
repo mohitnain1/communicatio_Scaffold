@@ -35,6 +35,8 @@ import com.scaffold.chat.repository.ChatRoomRepository;
 import com.scaffold.chat.repository.MessageStoreRepository;
 import com.scaffold.chat.repository.UserRepository;
 import com.scaffold.chat.service.ChatRoomService;
+import com.scaffold.chat.service.EmailService;
+import com.scaffold.chat.web.MessageConstants;
 import com.scaffold.chat.ws.event.MessageEventHandler;
 import com.scaffold.security.jwt.JwtUtil;
 import com.scaffold.web.util.Destinations;
@@ -48,7 +50,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	@Autowired JwtUtil jwtUtil;
 	@Autowired MongoTemplate mongoTemplate;
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(ChatRoomServiceImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(ChatRoomServiceImpl.class);
 	private final SimpleIdGenerator idGenerator = new SimpleIdGenerator();
 
 	@Autowired public ChatRoomRepository chatRoomRepository;
@@ -57,6 +59,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	@Autowired public SimpMessagingTemplate simpMessagingTemplate;
 	@Autowired private ObjectMapper mapper;
 	@Autowired private MessageEventHandler messageEventHandler;
+	@Autowired private EmailService emailService;
 
 	@Override
 	public ResponseEntity<Object> createChatRoom(String chatRoomName, List<Long> chatRoomMembers) throws IllegalArgumentException, Exception {
@@ -109,11 +112,26 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		response.put("chatRoomName", chatRoom.getChatRoomName());
 		response.put("roomAccessKey", chatRoom.getRoomAccessKey());
 		response.put("totalMembers", chatRoom.getMembers().size());
+		response.put("contentType", MessageEnum.ADD.getValue());
 		response.put("creator", new UserDataTransfer(currentUser.getUserId(), currentUser.getImage(), currentUser.getUsername()));
 		membersSendInvite.forEach(member -> {
 			String destination = String.format(Destinations.INVITATION.getPath(), member.getUserId());
 			simpMessagingTemplate.convertAndSend(destination ,response);
+			new Thread(() -> inviteOfflineUsersByEmail(member.getUserId(), chatRoom, currentUser)).start();
 		});
+	}
+	
+	private void inviteOfflineUsersByEmail(Long userId, ChatRoom chatRoom, User sender) {
+		User user = userDetailsRepository.findByUserId(userId).get();
+		if (user.isOnline() == false) {
+			Map<String, Object> context = new HashMap<>();
+			context.put("username", user.getUsername());
+			context.put("chatRoomName", chatRoom.getChatRoomName());
+			context.put("creationDate", Timestamp.valueOf(chatRoom.getCreationDate()).getTime());
+			context.put("creatorName", sender.getUsername());
+			String subject = MessageConstants.CHAT_CREATION_EMAIL_SUBJECT+" " + sender.getUsername();
+			emailService.sendHtmlMail(user.getEmail(), subject, context, "offline-user-email-template.ftl");
+		}
 	}
 
 	private ChatRoom mapChatRoomCreationDetails(String chatRoomName, List<Member> members) {
@@ -157,11 +175,23 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 			List<Member> updatedMembersList = resolveChatRoomMembers(params, existingMembers);
 			List<Member> updatedUniqueList = updatedMembersList.stream().distinct().collect(Collectors.toList());
 			chatRoom.setMembers(updatedUniqueList);
-			updatedUserNotification(params);
 			chatRoom = chatRoomRepository.save(chatRoom);
+			updatedUserNotification(params);
 			sendInviteToUsers(chatRoom, userIdToMemberMapper(params.getMembers().getAdd()));
+			dispatchUserRemovalEvent(usersToRemove, chatRoom, sender.getUsername());
 			return memberToUserCredential(chatRoom.getMembers());
 		}).orElseGet(ArrayList::new);
+	}
+
+	private void dispatchUserRemovalEvent(List<Long> usersToRemove, ChatRoom chatRoom, String currentUsername) {
+		Map<String, Object> response = new HashMap<>();
+		response.put("contentType", MessageEnum.REMOVE.getValue());
+		response.put("chatRoomId", chatRoom.getChatRoomId());
+		response.put("content", "You've been removed from " + chatRoom.getChatRoomName() + " by " + currentUsername);
+		usersToRemove.forEach(userId -> {
+			String destination = String.format(Destinations.INVITATION.getPath(), userId);
+			simpMessagingTemplate.convertAndSend(destination ,response);
+		});
 	}
 
 	private Message updatedUserNotification(ChatRoomUpdateParams params) {
@@ -179,6 +209,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 			response.put("content", generatedMessage.getContent());
 			response.put("sendingTime", Timestamp.valueOf(generatedMessage.getSendingTime()).getTime());
 			response.put("contentType", generatedMessage.getContentType());
+			response.put("members", getChatRoomMembers(chatRoomId));
 			
 			if (!toAdd.isEmpty() || !toRemove.isEmpty()) {
 				simpMessagingTemplate.convertAndSend(generatedMessage.getDestination(), response);
@@ -307,5 +338,12 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 					.filter(message -> message.getSendingTime().isAfter(member.getLastSeen()))
 					.count();
 		}
+	}
+
+	@Override
+	public List<UserDataTransfer> getChatRoomMembers(String chatRoomId) {
+		return chatRoomRepository.findByChatRoomIdAndIsDeleted(chatRoomId, false).map(chatRoom -> {
+			return memberToUserCredential(chatRoom.getMembers());
+		}).orElseGet(ArrayList::new);
 	}
 }
