@@ -39,13 +39,8 @@ public class VideoCallEvent {
 	MessageEventHandler messageEventHandler;
 
 	public void initiateCall(Message<Map<String, Object>> message) {
-		com.scaffold.chat.domains.Message savedMessage = messageEventHandler.saveMessage(getCallMessage(message),
-				messageEventHandler.getHeaderAccessor(message));
+		com.scaffold.chat.domains.Message savedMessage = messageEventHandler.saveMessage(getCallMessage(message), messageEventHandler.getHeaderAccessor(message));
 		UserDataTransfer sender = getUserBasicDetails(savedMessage.getSenderId());
-		
-		
-		System.out.println("Saved message ________________________________________");
-		System.out.println("\n" + savedMessage.getContent());
 		Map<String, Object> response = new HashMap<String, Object>();
 		response.put("id", savedMessage.getId());
 		response.put("sender", sender);
@@ -75,8 +70,7 @@ public class VideoCallEvent {
 						.filter(memberId -> !memberId.equals(sender.getUserId())).collect(Collectors.toList());
 				for (Long memberId : filteredMembers) {
 					response.put("chatRoomName", chatRoom.getChatRoomName());
-					String destinationToNotify = String.format(Destinations.MESSAGE_EVENT_NOTIFICATION.getPath(),
-							memberId);
+					String destinationToNotify = String.format(Destinations.MESSAGE_EVENT_NOTIFICATION.getPath(),memberId);
 					simpMessagingTemplate.convertAndSend(destinationToNotify, response);
 				}
 			});
@@ -139,18 +133,15 @@ public class VideoCallEvent {
 		}
 	}
 
-	public void returnSignal(Message<SignalPayload> message) {
-		SignalPayload payload = message.getPayload();
+	public void returnSignal(Message<Map<String, Object>> message) {
+		Map<String, Object> payload = message.getPayload();
+		UserDataTransfer user = getUserBasicDetails(Long.parseLong(String.valueOf(payload.get("senderId"))));
 		Map<String, Object> response = new HashMap<String, Object>();
-		if (Objects.nonNull(payload.getSenderId())) {
-			UserDataTransfer user = getUserBasicDetails(payload.getSenderId());
-			response.put("sender", user);
-			response.put("signal", payload.getSignal());
-			response.put("contentType", MessageEnum.RETURNING_SIGNAL.getValue());
-			String destination = String.format(Destinations.VIDEO_CALL.getPath(),
-					getHeaderAccessor(message).getDestination().replace("/app/call.", ""));
-			simpMessagingTemplate.convertAndSend(destination, response);
-		}
+		response.put("sender", user);
+		response.put("signal", payload.get("signal"));
+		response.put("contentType", MessageEnum.SIGNAL.getValue());
+		String destination = String.format(Destinations.VIDEO_CALL.getPath(),getHeaderAccessor(message).getDestination().replace("/app/call.", ""));
+		simpMessagingTemplate.convertAndSend(destination, response);
 	}
 
 	public void sendSignal(Message<SignalPayload> message) {
