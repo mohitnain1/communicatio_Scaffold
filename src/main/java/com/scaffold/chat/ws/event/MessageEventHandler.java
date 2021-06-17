@@ -172,6 +172,12 @@ public class MessageEventHandler {
 			if(messagePayload.getDestination().startsWith("/app/chat")) {
 				chatRoomId= messagePayload.getDestination().replace("/app/chat.", "");
 			}
+			if(messagePayload.getDestination().startsWith("/app/call")) {
+				chatRoomId= messagePayload.getDestination().replace("/app/call.", "");
+				senderData.put("sendingTime", messagePayload.getSendingTime());
+				senderData.put("members", chatRoomService.getChatRoomMembers(chatRoomId));
+				senderData.put("chatRoomId", chatRoomId);
+			}
 			if( messagePayload.getDestination().startsWith("/topic/conversations")) {
 				chatRoomId= messagePayload.getDestination().replace("/topic/conversations.", "");
 				if(messagePayload.getContentType().equals((MessageEnum.UPDATE_MEMBER).getValue())) {
