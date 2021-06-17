@@ -10,8 +10,11 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.scaffold.chat.domains.ChatPayload;
+import com.scaffold.chat.domains.SignalPayload;
 import com.scaffold.chat.service.ChatRoomService;
 import com.scaffold.chat.ws.event.MessageEventHandler;
+import com.scaffold.chat.ws.event.VideoCallEvent;
+import com.scaffold.web.util.MessageEnum;
 
 @RestController
 public class WebSocketController {
@@ -19,6 +22,7 @@ public class WebSocketController {
 	@Autowired SimpMessagingTemplate simpMessagingTemplate;
 	@Autowired ChatRoomService chatRoomService;
 	@Autowired MessageEventHandler messageEventHandler;
+	@Autowired VideoCallEvent videoCallEvent;
 	
 	@MessageMapping("/chat.{chatRoomId}")
 	public void chatRoom(@DestinationVariable String chatRoomId, Message<ChatPayload> message) {
@@ -28,6 +32,23 @@ public class WebSocketController {
 		if(Objects.nonNull(savedMessage)) {
 			simpMessagingTemplate.convertAndSend("/topic/conversations."+chatRoomId, messageEventHandler
 					.getResponseForClient(messageEventHandler.getCredentials(message), savedMessage));
+		}
+	}
+	
+	@MessageMapping("/call.{chatRoomId}")
+	public void videoCall(@DestinationVariable String chatRoomId, Message<ChatPayload> message, Message<SignalPayload> signal) {
+		if (message.getPayload().getContentType().equals(MessageEnum.CALL_INITIATED.getValue())) {
+			videoCallEvent.incomingCall(message);
+		}else if (message.getPayload().getContentType().equals(MessageEnum.CALL_ACCEPTED.getValue())) {
+			videoCallEvent.callAccepted(message);
+		}else if (message.getPayload().getContentType().equals(MessageEnum.CALL_REJECTED.getValue())) {
+			videoCallEvent.callRejected(message);
+		}else if (message.getPayload().getContentType().equals(MessageEnum.CALL_DISCONNECTED.getValue())) {
+			videoCallEvent.callDisconnected(message);
+		}else if (message.getPayload().getContentType().equals(MessageEnum.RETURNING_SIGNAL.getValue())) {
+			videoCallEvent.returnSignal(signal);
+		}else if (message.getPayload().getContentType().equals(MessageEnum.SENDING_SIGNAL.getValue())) {
+			videoCallEvent.sendSignal(signal);
 		}
 	}
 }
