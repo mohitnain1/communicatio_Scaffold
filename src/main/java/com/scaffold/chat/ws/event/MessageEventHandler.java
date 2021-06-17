@@ -162,17 +162,17 @@ public class MessageEventHandler {
 	
 	public void newMessageEvent(com.scaffold.chat.domains.Message messagePayload, UserDataTransfer sender) {
 		new Thread(() -> {
-			Map<String, Object> senderData = new HashMap<String, Object>();
+			Map<String, Object> senderData = new HashMap<>();
 			senderData.put("id", messagePayload.getId());
 			senderData.put("sender", sender);
 			senderData.put("content", messagePayload.getContent());
-			senderData.put("sendingTime", new Date().getTime());
+			senderData.put("sendingTime", System.currentTimeMillis());
 			senderData.put("contentType", messagePayload.getContentType());
 			String chatRoomId=null;
 			if(messagePayload.getDestination().startsWith("/app/chat")) {
 				chatRoomId= messagePayload.getDestination().replace("/app/chat.", "");
 			}
-			if( messagePayload.getDestination().startsWith("/topic/conversations")) {
+			if(messagePayload.getDestination().startsWith("/topic/conversations")) {
 				chatRoomId= messagePayload.getDestination().replace("/topic/conversations.", "");
 				if(messagePayload.getContentType().equals((MessageEnum.UPDATE_MEMBER).getValue())) {
 					senderData.put("members", chatRoomService.getChatRoomMembers(chatRoomId));

@@ -1,5 +1,10 @@
 package com.scaffold.chat.domains;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+
+@Builder
+@AllArgsConstructor
 public class ChatPayload {
 
 	private long senderId;
