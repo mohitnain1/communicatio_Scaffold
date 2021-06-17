@@ -10,6 +10,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.scaffold.chat.domains.ChatPayload;
+import com.scaffold.chat.domains.SignalPayload;
 import com.scaffold.chat.service.ChatRoomService;
 import com.scaffold.chat.ws.event.MessageEventHandler;
 import com.scaffold.chat.ws.event.VideoCallEvent;
@@ -35,15 +36,19 @@ public class WebSocketController {
 	}
 	
 	@MessageMapping("/call.{chatRoomId}")
-	public void videoCall(@DestinationVariable String chatRoomId, Message<ChatPayload> message) {
+	public void videoCall(@DestinationVariable String chatRoomId, Message<ChatPayload> message, Message<SignalPayload> signal) {
 		if (message.getPayload().getContentType().equals(MessageEnum.CALL_INITIATED.getValue())) {
 			videoCallEvent.incomingCall(message);
-			
 		}else if (message.getPayload().getContentType().equals(MessageEnum.CALL_ACCEPTED.getValue())) {
-			videoCallEvent.callAccepted(message.getPayload());
-			
+			videoCallEvent.callAccepted(message);
 		}else if (message.getPayload().getContentType().equals(MessageEnum.CALL_REJECTED.getValue())) {
-			videoCallEvent.callRejected(message.getPayload());
+			videoCallEvent.callRejected(message);
+		}else if (message.getPayload().getContentType().equals(MessageEnum.CALL_DISCONNECTED.getValue())) {
+			videoCallEvent.callDisconnected(message);
+		}else if (message.getPayload().getContentType().equals(MessageEnum.RETURNING_SIGNAL.getValue())) {
+			videoCallEvent.returnSignal(signal);
+		}else if (message.getPayload().getContentType().equals(MessageEnum.SENDING_SIGNAL.getValue())) {
+			videoCallEvent.sendSignal(signal);
 		}
 	}
 }
