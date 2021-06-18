@@ -88,7 +88,6 @@ public class VideoCallEvent {
 	public void callAccepted(Message<Map<String, Object>> message) {
 		Map<String, Object> payload = message.getPayload();
 		UserDataTransfer user = getUserBasicDetails(Long.parseLong(String.valueOf(payload.get("senderId"))));
-		inCallMembers.addAll(Collections.singletonList(user));
 		Map<String, Object> response = new HashMap<String, Object>();
 		response.put("sender", user);
 		response.put("sendingTime", new Date().getTime());
