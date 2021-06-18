@@ -41,15 +41,16 @@ public class WebSocketController {
 		if (String.valueOf(payload.get("contentType")).equals(MessageEnum.CALL_INITIATED.getValue())) {
 			videoCallEvent.initiateCall(message);
 		}
-//		else if (payload.getContentType().equals(MessageEnum.CALL_ACCEPTED.getValue())) {
-//			videoCallEvent.callAccepted(message);
-//		}else if (payload.getContentType().equals(MessageEnum.CALL_REJECTED.getValue())) {
-//			videoCallEvent.callRejected(message);
-//		}else if (payload.getContentType().equals(MessageEnum.CALL_DISCONNECTED.getValue())) {
-//			videoCallEvent.callDisconnected(message);
-//		}else if (payload.getContentType().equals(MessageEnum.RETURNING_SIGNAL.getValue())) {
-//			videoCallEvent.returnSignal(signal);
-//		}else if (payload.getContentType().equals(MessageEnum.SENDING_SIGNAL.getValue())) {
+		else if (String.valueOf(payload.get("contentType")).equals(MessageEnum.CALL_ACCEPTED.getValue())) {
+			videoCallEvent.callAccepted(message);
+		}else if (String.valueOf(payload.get("contentType")).equals(MessageEnum.CALL_REJECTED.getValue())) {
+			videoCallEvent.callRejected(message);
+		}else if (String.valueOf(payload.get("contentType")).equals(MessageEnum.CALL_DISCONNECTED.getValue())) {
+			videoCallEvent.callDisconnected(message);
+		}else if (String.valueOf(payload.get("contentType")).equals(MessageEnum.SIGNAL.getValue())) {
+			videoCallEvent.returnSignal(message);
+		}
+//		else if (payload.getContentType().equals(MessageEnum.SENDING_SIGNAL.getValue())) {
 //			videoCallEvent.sendSignal(signal);
 //		}
 	}
