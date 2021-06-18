@@ -39,7 +39,7 @@ public class ConnectDisconnectEventHandler implements ChannelInterceptor {
 				handleSessionDisconnect(message, accessor);
 			}
 		}catch(Exception e) {
-			log.info("Handled exception on disconnect command {} ", e.getLocalizedMessage());
+			
 		}
 		return message;
 	}
