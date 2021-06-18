@@ -3,6 +3,8 @@ package com.scaffold.chat.ws.controller;
 import java.util.Map;
 import java.util.Objects;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -23,6 +25,7 @@ public class WebSocketController {
 	@Autowired ChatRoomService chatRoomService;
 	@Autowired MessageEventHandler messageEventHandler;
 	@Autowired VideoCallEvent videoCallEvent;
+	private static final Logger log = LoggerFactory.getLogger(WebSocketController.class);
 	
 	@MessageMapping("/chat.{chatRoomId}")
 	public void chatRoom(@DestinationVariable String chatRoomId, Message<ChatPayload> message) {
@@ -49,6 +52,8 @@ public class WebSocketController {
 			videoCallEvent.callDisconnected(message);
 		}else if (String.valueOf(payload.get("contentType")).equals(MessageEnum.SIGNAL.getValue())) {
 			videoCallEvent.returnSignal(message);
+		}else {
+			log.error("ContentType don't matched.");
 		}
 //		else if (payload.getContentType().equals(MessageEnum.SENDING_SIGNAL.getValue())) {
 //			videoCallEvent.sendSignal(signal);
