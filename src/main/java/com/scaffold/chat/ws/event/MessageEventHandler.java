@@ -168,26 +168,22 @@ public class MessageEventHandler {
 			senderData.put("content", messagePayload.getContent());
 			senderData.put("sendingTime", System.currentTimeMillis());
 			senderData.put("contentType", messagePayload.getContentType());
-			String chatRoomId=null;
-			if(messagePayload.getDestination().startsWith("/app/chat")) {
-				chatRoomId= messagePayload.getDestination().replace("/app/chat.", "");
+			String destination = messagePayload.getDestination();
+			String chatRoomId = destination.startsWith("/app/chat") ? destination.replace("/app/chat.", "")
+					: destination.startsWith("/topic/conversations") ? destination.replace("/topic/conversations.", "") : null;
+			
+			if (messagePayload.getContentType().equals((MessageEnum.UPDATE_MEMBER).getValue())) {
+				senderData.put("members", chatRoomService.getChatRoomMembers(chatRoomId));
+				senderData.put("chatRoomId", chatRoomId);
 			}
-			if(messagePayload.getDestination().startsWith("/topic/conversations")) {
-				chatRoomId= messagePayload.getDestination().replace("/topic/conversations.", "");
-				if(messagePayload.getContentType().equals((MessageEnum.UPDATE_MEMBER).getValue())) {
-					senderData.put("members", chatRoomService.getChatRoomMembers(chatRoomId));
-					senderData.put("chatRoomId", chatRoomId);
-				}
-			}
-			if(Objects.nonNull(chatRoomId)) {
-				chatRoomRepository.findByChatRoomIdAndIsDeleted(chatRoomId, false).ifPresent(chatRoom ->{				
-					List<Long> chatRoomMembersId = chatRoom.getMembers().stream().map(Member::getUserId)
-							.filter(memberId -> !memberId.equals(sender.getUserId())).collect(Collectors.toList());
-					chatRoomMembersId.forEach(userId->{
+			if (Objects.nonNull(chatRoomId)) {
+				chatRoomRepository.findByChatRoomIdAndIsDeleted(chatRoomId, false).ifPresent(chatRoom -> {
+					List<Long> filteredMembers = chatRoom.getMembers().stream().map(Member::getUserId).filter(memberId -> !memberId.equals(sender.getUserId())).collect(Collectors.toList());
+					for(Long userId: filteredMembers) {
 						senderData.put("chatRoomName", chatRoom.getChatRoomName());
 						String destinationToNotify = String.format(Destinations.MESSAGE_EVENT_NOTIFICATION.getPath(), userId);
 						template.convertAndSend(destinationToNotify, senderData);
-					});
+					}
 				});
 			}
 		}).start();

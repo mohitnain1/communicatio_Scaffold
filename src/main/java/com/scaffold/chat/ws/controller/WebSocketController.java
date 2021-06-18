@@ -11,7 +11,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.scaffold.chat.domains.ChatPayload;
-import com.scaffold.chat.domains.SignalPayload;
 import com.scaffold.chat.service.ChatRoomService;
 import com.scaffold.chat.ws.event.MessageEventHandler;
 import com.scaffold.chat.ws.event.VideoCallEvent;
