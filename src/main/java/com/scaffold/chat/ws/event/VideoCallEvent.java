@@ -47,13 +47,14 @@ public class VideoCallEvent {
 		response.put("sendingTime", savedMessage.getSendingTime());
 		response.put("content", savedMessage.getContent());
 		response.put("contentType", savedMessage.getContentType());
+		response.put("signal", message.getPayload().get("signal"));
 		String chatRoomId = savedMessage.getDestination().replace("/app/call.", "");
 		String destination = String.format("/topic/conversations.", chatRoomId);
 		simpMessagingTemplate.convertAndSend(destination, response);
-		incomingCallInvitation(savedMessage, sender);
+		incomingCallInvitation(savedMessage, sender, message.getPayload().get("signal"));
 	}
 
-	public void incomingCallInvitation(com.scaffold.chat.domains.Message messagePayload, UserDataTransfer sender) {
+	public void incomingCallInvitation(com.scaffold.chat.domains.Message messagePayload, UserDataTransfer sender, Object signal) {
 		Map<String, Object> response = new HashMap<String, Object>();
 		inCallMembers=new ArrayList<>();
 		inCallMembers.add(sender);
@@ -65,6 +66,7 @@ public class VideoCallEvent {
 			response.put("inCallMembers", inCallMembers);
 			response.put("chatRoomId", chatRoomId);
 			response.put("contentType", MessageEnum.INCOMING_CALL);
+			response.put("signal", signal);
 		}
 		if (Objects.nonNull(chatRoomId)) {
 			chatRoomRepository.findByChatRoomIdAndIsDeleted(chatRoomId, false).ifPresent(chatRoom -> {
@@ -101,6 +103,7 @@ public class VideoCallEvent {
 			response.put("sendingTime", new Date().getTime());
 			response.put("content", user.getUsername() + " joined.");
 			response.put("contentType", payload.get("contentType"));
+			response.put("signal", payload.get("signal"));
 			response.put("inCallMembers", inCallMembers);
 			String destination = String.format(Destinations.VIDEO_CALL.getPath(), getHeaderAccessor(message).getDestination().replace("/app/call.", ""));
 			simpMessagingTemplate.convertAndSend(destination, response);
