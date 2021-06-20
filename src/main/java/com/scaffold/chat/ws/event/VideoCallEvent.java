@@ -41,6 +41,8 @@ public class VideoCallEvent {
 	public void initiateCall(Message<Map<String, Object>> message) {
 		com.scaffold.chat.domains.Message savedMessage = messageEventHandler.saveMessage(getCallMessage(message), messageEventHandler.getHeaderAccessor(message));
 		UserDataTransfer sender = getUserBasicDetails(savedMessage.getSenderId());
+		inCallMembers=new ArrayList<>();
+		inCallMembers.add(sender);
 		Map<String, Object> response = new HashMap<String, Object>();
 		response.put("id", savedMessage.getId());
 		response.put("sender", sender);
@@ -56,8 +58,6 @@ public class VideoCallEvent {
 
 	public void incomingCallInvitation(com.scaffold.chat.domains.Message messagePayload, UserDataTransfer sender, Object signal) {
 		Map<String, Object> response = new HashMap<String, Object>();
-		inCallMembers=new ArrayList<>();
-		inCallMembers.add(sender);
 		String chatRoomId = null;
 		if (messagePayload.getDestination().startsWith("/app/call")) {
 			chatRoomId = messagePayload.getDestination().replace("/app/call.", "");
@@ -97,7 +97,6 @@ public class VideoCallEvent {
 		UserDataTransfer user = getUserBasicDetails(Long.parseLong(String.valueOf(payload.get("senderId"))));
 		if(Objects.nonNull(user) && !inCallMembers.contains(user)) {
 			inCallMembers.add(user);
-			System.out.println(inCallMembers);
 			Map<String, Object> response = new HashMap<String, Object>();
 			response.put("sender", user);
 			response.put("sendingTime", new Date().getTime());
@@ -105,12 +104,26 @@ public class VideoCallEvent {
 			response.put("contentType", payload.get("contentType"));
 			response.put("signal", payload.get("signal"));
 			response.put("inCallMembers", inCallMembers);
-			String destination = String.format(Destinations.VIDEO_CALL.getPath(), getHeaderAccessor(message).getDestination().replace("/app/call.", ""));
+			String chatRoomId = getHeaderAccessor(message).getDestination().replace("/app/call.", "");
+			String destination = String.format(Destinations.VIDEO_CALL.getPath(), chatRoomId);
 			simpMessagingTemplate.convertAndSend(destination, response);
+			responseToInCallMembers(inCallMembers, user, chatRoomId);
 			log.info("Call Accepted by "+ user.getUsername());
 		}else {
 			log.error("Error in call call receving.");
 		}
+	}
+	
+	public void responseToInCallMembers(List<UserDataTransfer> inCallMembers, UserDataTransfer user, String chatRoomId) {
+		String chatRoomName = chatRoomRepository.findByChatRoomIdAndIsDeleted(chatRoomId, false).get().getChatRoomName();
+		Map<String, Object> response = new HashMap<String, Object>();
+		if (!(inCallMembers==null)) {inCallMembers.remove(user);}
+		response.put("chatRoomName", chatRoomName);
+		response.put("chatRoomId", chatRoomId);
+		response.put("inCallMembers", inCallMembers);
+		response.put("contentType", MessageEnum.IN_CALL_MEMBERS.getValue());
+		String destinationToNotify = String.format(Destinations.MESSAGE_EVENT_NOTIFICATION.getPath(),user.getUserId());
+		simpMessagingTemplate.convertAndSend(destinationToNotify, response);
 	}
 
 	public void callRejected(Message<Map<String, Object>> message) {
@@ -129,7 +142,7 @@ public class VideoCallEvent {
 	public void callDisconnected(Message<Map<String, Object>> message) {
 		Map<String, Object> payload = message.getPayload();
 		UserDataTransfer user = getUserBasicDetails(Long.parseLong(String.valueOf(payload.get("senderId"))));
-		inCallMembers.remove(user);
+		if (!(inCallMembers==null)) {inCallMembers.remove(user);}
 		Map<String, Object> response = new HashMap<String, Object>();
 		response.put("sender", user);
 		response.put("sendingTime", new Date().getTime());
@@ -143,30 +156,28 @@ public class VideoCallEvent {
 
 	public void returnSignal(Message<Map<String, Object>> message) {
 		Map<String, Object> payload = message.getPayload();
-		UserDataTransfer user = getUserBasicDetails(Long.parseLong(String.valueOf(payload.get("senderId"))));
 		Map<String, Object> response = new HashMap<String, Object>();
+		UserDataTransfer user = getUserBasicDetails(Long.parseLong(String.valueOf(payload.get("senderId"))));
 		response.put("sender", user);
 		response.put("signal", payload.get("signal"));
+		response.put("userToSignalId", payload.get("userToSignalId"));
 		response.put("contentType", payload.get("contentType"));
-		String destination = String.format(Destinations.VIDEO_CALL.getPath(),getHeaderAccessor(message).getDestination().replace("/app/call.", ""));
-		simpMessagingTemplate.convertAndSend(destination, response);
+		String destinationToNotify = String.format(Destinations.MESSAGE_EVENT_NOTIFICATION.getPath(),user.getUserId());
+		simpMessagingTemplate.convertAndSend(destinationToNotify, response);
 		log.info("Signal return by "+ user.getUsername());
 	}
 
-//	public void sendSignal(Message<SignalPayload> message) {
-//		SignalPayload payload = message.getPayload();
-//		Map<String, Object> response = new HashMap<String, Object>();
-//		if (Objects.nonNull(payload.getSenderId())) {
-//			UserDataTransfer user = getUserBasicDetails(payload.getSenderId());
-//			response.put("sender", user);
-//			response.put("signal", payload.getSignal());
-//			response.put("userToSignalId", payload.getUserToSignalId());
-//			response.put("contentType", MessageEnum.SENDING_SIGNAL.getValue());
-//			String destination = String.format(Destinations.VIDEO_CALL.getPath(),
-//					getHeaderAccessor(message).getDestination().replace("/app/call.", ""));
-//			simpMessagingTemplate.convertAndSend(destination, response);
-//		}
-//	}
+	public void sendSignal(Message<Map<String, Object>> message) {
+		Map<String, Object> payload = message.getPayload();
+		Map<String, Object> response = new HashMap<String, Object>();
+		UserDataTransfer user = getUserBasicDetails(Long.parseLong(String.valueOf(payload.get("senderId"))));
+		response.put("sender", user);
+		response.put("signal", payload.get("signal"));
+		response.put("userToSignalId", payload.get("userToSignalId"));
+		response.put("contentType", payload.get("contentType"));
+		String destinationToNotify = String.format(Destinations.MESSAGE_EVENT_NOTIFICATION.getPath(),user.getUserId());
+		simpMessagingTemplate.convertAndSend(destinationToNotify, response);
+	}
 	
 	private List<UserDataTransfer> getTotalMembers(String chatRoomId) {
 		List<Member> members = chatRoomRepository.findByChatRoomIdAndIsDeleted(chatRoomId, false).get().getMembers();
