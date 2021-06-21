@@ -43,8 +43,7 @@ public class WebSocketController {
 		Map<String, Object> payload = message.getPayload();
 		if (String.valueOf(payload.get("contentType")).equals(MessageEnum.CALL_INITIATED.getValue())) {
 			videoCallEvent.initiateCall(message);
-		}
-		else if (String.valueOf(payload.get("contentType")).equals(MessageEnum.CALL_ACCEPTED.getValue())) {
+		}else if (String.valueOf(payload.get("contentType")).equals(MessageEnum.CALL_ACCEPTED.getValue())) {
 			videoCallEvent.callAccepted(message);
 		}else if (String.valueOf(payload.get("contentType")).equals(MessageEnum.CALL_REJECTED.getValue())) {
 			videoCallEvent.callRejected(message);
@@ -52,8 +51,7 @@ public class WebSocketController {
 			videoCallEvent.callDisconnected(message);
 		}else if (String.valueOf(payload.get("contentType")).equals(MessageEnum.RETURNING_SIGNAL.getValue())) {
 			videoCallEvent.returnSignal(message);
-		}
-		else if (String.valueOf(payload.get("contentType")).equals(MessageEnum.RETURNING_SIGNAL.getValue())) {
+		}else if (String.valueOf(payload.get("contentType")).equals(MessageEnum.SENDING_SIGNAL.getValue())) {
 			videoCallEvent.sendSignal(message);
 		}else {
 			log.error("ContentType don't matched.");

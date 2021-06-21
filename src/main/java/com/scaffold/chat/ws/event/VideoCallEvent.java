@@ -36,6 +36,7 @@ public class VideoCallEvent {
 	@Autowired MessageEventHandler messageEventHandler;
 	
 	private static final Logger log = LoggerFactory.getLogger(VideoCallEvent.class);
+	
 	private List<UserDataTransfer> inCallMembers;
 	
 	public void initiateCall(Message<Map<String, Object>> message) {
@@ -162,7 +163,7 @@ public class VideoCallEvent {
 		response.put("signal", payload.get("signal"));
 		response.put("userToSignalId", payload.get("userToSignalId"));
 		response.put("contentType", payload.get("contentType"));
-		String destinationToNotify = String.format(Destinations.MESSAGE_EVENT_NOTIFICATION.getPath(),user.getUserId());
+		String destinationToNotify = String.format(Destinations.MESSAGE_EVENT_NOTIFICATION.getPath(), payload.get("userToSignalId"));
 		simpMessagingTemplate.convertAndSend(destinationToNotify, response);
 		log.info("Signal return by "+ user.getUsername());
 	}
@@ -175,7 +176,7 @@ public class VideoCallEvent {
 		response.put("signal", payload.get("signal"));
 		response.put("userToSignalId", payload.get("userToSignalId"));
 		response.put("contentType", payload.get("contentType"));
-		String destinationToNotify = String.format(Destinations.MESSAGE_EVENT_NOTIFICATION.getPath(),user.getUserId());
+		String destinationToNotify = String.format(Destinations.MESSAGE_EVENT_NOTIFICATION.getPath(), payload.get("userToSignalId"));
 		simpMessagingTemplate.convertAndSend(destinationToNotify, response);
 	}
 	
