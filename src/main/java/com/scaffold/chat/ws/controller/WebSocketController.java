@@ -50,13 +50,13 @@ public class WebSocketController {
 			videoCallEvent.callRejected(message);
 		}else if (String.valueOf(payload.get("contentType")).equals(MessageEnum.CALL_DISCONNECTED.getValue())) {
 			videoCallEvent.callDisconnected(message);
-		}else if (String.valueOf(payload.get("contentType")).equals(MessageEnum.SIGNAL.getValue())) {
+		}else if (String.valueOf(payload.get("contentType")).equals(MessageEnum.RETURNING_SIGNAL.getValue())) {
 			videoCallEvent.returnSignal(message);
+		}
+		else if (String.valueOf(payload.get("contentType")).equals(MessageEnum.RETURNING_SIGNAL.getValue())) {
+			videoCallEvent.sendSignal(message);
 		}else {
 			log.error("ContentType don't matched.");
 		}
-//		else if (payload.getContentType().equals(MessageEnum.SENDING_SIGNAL.getValue())) {
-//			videoCallEvent.sendSignal(signal);
-//		}
 	}
 }
