@@ -23,6 +23,7 @@ public @Data class ChatRoom {
 	private String roomAccessKey;
 	private List<Member> members;
 	private boolean isDeleted = false;
+	private boolean isCallActive = false;
 	
 	@DBRef(lazy = true)
 	private MessageStore messageStore;
