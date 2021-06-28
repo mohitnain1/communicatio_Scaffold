@@ -18,17 +18,17 @@ import org.springframework.stereotype.Component;
 import com.scaffold.chat.datatransfer.UserDataTransfer;
 import com.scaffold.chat.domains.ChatPayload;
 import com.scaffold.chat.domains.ChatRoom;
+import com.scaffold.chat.domains.InCallMembers;
 import com.scaffold.chat.domains.Member;
 import com.scaffold.chat.domains.User;
 import com.scaffold.chat.repository.ChatRoomRepository;
 import com.scaffold.chat.repository.MessageStoreRepository;
 import com.scaffold.chat.repository.UserRepository;
-import com.scaffold.security.domains.InCallMembers;
 import com.scaffold.web.util.Destinations;
 import com.scaffold.web.util.MessageEnum;
 
 @Component
-public class VideoCallEvent {
+public class VideoCallEventHandler {
 
 	@Autowired public ChatRoomRepository chatRoomRepository;
 	@Autowired public MessageStoreRepository messageStoreRepository;
@@ -36,7 +36,7 @@ public class VideoCallEvent {
 	@Autowired public SimpMessagingTemplate simpMessagingTemplate;
 	@Autowired MessageEventHandler messageEventHandler;
 	
-	private static final Logger log = LoggerFactory.getLogger(VideoCallEvent.class);
+	private static final Logger log = LoggerFactory.getLogger(VideoCallEventHandler.class);
 	
 	final InCallMembers inCallMember = InCallMembers.getInstance();
 
@@ -45,6 +45,7 @@ public class VideoCallEvent {
 		UserDataTransfer sender = getUserBasicDetails(savedMessage.getSenderId());
 		String chatRoomId = savedMessage.getDestination().replace("/app/call.", "");
 		setIsCallActiveStatus(chatRoomId, true);
+		inCallMember.checkInCallMembers(chatRoomId);
 		inCallMember.setInCallMembers(chatRoomId, sender);
 		List<UserDataTransfer> allActiveMembers = inCallMember.getInCallMembers(chatRoomId);
 		Map<String, Object> response = new HashMap<String, Object>();
@@ -151,7 +152,7 @@ public class VideoCallEvent {
 		response.put("inCallMembers", inCallMembers);
 		String destination = String.format(Destinations.VIDEO_CALL.getPath(),chatRoomId);
 		simpMessagingTemplate.convertAndSend(destination, response);
-		if (inCallMembers.size()==0) { setIsCallActiveStatus(chatRoomId, false);}
+		if (inCallMembers.size()==0 || inCallMembers.size()==1) { setIsCallActiveStatus(chatRoomId, false);}
 	}
 
 	public void returnSignal(Message<Map<String, Object>> message) {
@@ -175,6 +176,18 @@ public class VideoCallEvent {
 		response.put("userToSignalId", payload.get("userToSignalId"));
 		response.put("contentType", payload.get("contentType"));
 		String destinationToNotify = String.format(Destinations.MESSAGE_EVENT_NOTIFICATION.getPath(), payload.get("userToSignalId"));
+		simpMessagingTemplate.convertAndSend(destinationToNotify, response);
+	}
+	
+	public void toggleAudio(Message<Map<String, Object>> message) {
+		Map<String, Object> payload = message.getPayload();
+		Map<String, Object> response = new HashMap<String, Object>();
+		long userId = Long.parseLong(String.valueOf(payload.get("userId")));
+		response.put("senderId", Long.parseLong(String.valueOf(payload.get("senderId"))));
+		response.put("userId", userId);
+		response.put("mute", payload.get("mute"));
+		response.put("contentType", payload.get("contentType"));
+		String destinationToNotify = String.format(Destinations.MESSAGE_EVENT_NOTIFICATION.getPath(), userId);
 		simpMessagingTemplate.convertAndSend(destinationToNotify, response);
 	}
 	

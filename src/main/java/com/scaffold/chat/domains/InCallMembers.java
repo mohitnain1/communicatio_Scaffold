@@ -1,4 +1,4 @@
-package com.scaffold.security.domains;
+package com.scaffold.chat.domains;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,5 +52,11 @@ public class InCallMembers {
 			return allActiveMembers;
 		}
 		return null;
+	}
+	
+	public void checkInCallMembers(String chatRoomId) {
+		if(inCallMembers.containsKey(chatRoomId)) {
+			inCallMembers.remove(chatRoomId);
+		}
 	}
 }

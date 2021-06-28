@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.scaffold.chat.domains.ChatPayload;
 import com.scaffold.chat.service.ChatRoomService;
 import com.scaffold.chat.ws.event.MessageEventHandler;
-import com.scaffold.chat.ws.event.VideoCallEvent;
+import com.scaffold.chat.ws.event.VideoCallEventHandler;
 import com.scaffold.web.util.MessageEnum;
 
 @RestController
@@ -24,7 +24,7 @@ public class WebSocketController {
 	@Autowired SimpMessagingTemplate simpMessagingTemplate;
 	@Autowired ChatRoomService chatRoomService;
 	@Autowired MessageEventHandler messageEventHandler;
-	@Autowired VideoCallEvent videoCallEvent;
+	@Autowired VideoCallEventHandler videoCallEvent;
 	private static final Logger log = LoggerFactory.getLogger(WebSocketController.class);
 	
 	@MessageMapping("/chat.{chatRoomId}")
@@ -53,6 +53,8 @@ public class WebSocketController {
 			videoCallEvent.returnSignal(message);
 		}else if (String.valueOf(payload.get("contentType")).equals(MessageEnum.SENDING_SIGNAL.getValue())) {
 			videoCallEvent.sendSignal(message);
+		}else if (String.valueOf(payload.get("contentType")).equals(MessageEnum.TOGGLE_AUDIO.getValue())) {
+			videoCallEvent.toggleAudio(message);
 		}else {
 			log.error("ContentType don't matched.");
 		}
