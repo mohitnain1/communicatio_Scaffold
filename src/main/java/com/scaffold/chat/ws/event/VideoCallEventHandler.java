@@ -71,7 +71,7 @@ public class VideoCallEventHandler {
 			response.put("totalMembers", getTotalMembers(chatRoomId));
 			response.put("inCallMembers", allActiveMembers);
 			response.put("chatRoomId", chatRoomId);
-			response.put("contentType", MessageEnum.INCOMING_CALL);
+			response.put("contentType", MessageEnum.INCOMING_CALL.getValue());
 			response.put("signal", signal);
 		}
 		if (Objects.nonNull(chatRoomId)) {
@@ -182,12 +182,27 @@ public class VideoCallEventHandler {
 	public void toggleAudio(Message<Map<String, Object>> message) {
 		Map<String, Object> payload = message.getPayload();
 		Map<String, Object> response = new HashMap<String, Object>();
-		long userId = Long.parseLong(String.valueOf(payload.get("userId")));
-		response.put("senderId", Long.parseLong(String.valueOf(payload.get("senderId"))));
-		response.put("userId", userId);
+		UserDataTransfer user = getUserBasicDetails(Long.parseLong(String.valueOf(payload.get("senderId"))));
+		long userIdToMute = Long.parseLong(String.valueOf(payload.get("userIdToMute")));
+		response.put("sender", user);
+		response.put("userIdToMute", userIdToMute);
 		response.put("mute", payload.get("mute"));
 		response.put("contentType", payload.get("contentType"));
-		String destinationToNotify = String.format(Destinations.MESSAGE_EVENT_NOTIFICATION.getPath(), userId);
+		String destinationToNotify = String.format(Destinations.MESSAGE_EVENT_NOTIFICATION.getPath(), userIdToMute);
+		simpMessagingTemplate.convertAndSend(destinationToNotify, response);
+	}
+	
+	public void addUserInCall(Message<Map<String, Object>> message) {
+		Map<String, Object> payload = message.getPayload();
+		Map<String, Object> response = new HashMap<String, Object>();
+		UserDataTransfer user = getUserBasicDetails(Long.parseLong(String.valueOf(payload.get("senderId"))));
+		String chatRoomId = getHeaderAccessor(message).getDestination().replace("/app/call.", "");
+		response.put("sender", user);
+		response.put("signal", payload.get("signal"));
+		response.put("totalMembers", getTotalMembers(chatRoomId));
+		response.put("chatRoomId", chatRoomId);
+		response.put("contentType", MessageEnum.INCOMING_CALL.getValue());
+		String destinationToNotify = String.format(Destinations.MESSAGE_EVENT_NOTIFICATION.getPath(), payload.get("userIdToAdd"));
 		simpMessagingTemplate.convertAndSend(destinationToNotify, response);
 	}
 	

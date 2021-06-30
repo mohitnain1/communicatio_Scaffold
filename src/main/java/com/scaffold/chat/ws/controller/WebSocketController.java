@@ -40,23 +40,26 @@ public class WebSocketController {
 	
 	@MessageMapping("/call.{chatRoomId}")
 	public void videoCall(@DestinationVariable String chatRoomId, Message<Map<String, Object>> message) {
-		Map<String, Object> payload = message.getPayload();
-		if (String.valueOf(payload.get("contentType")).equals(MessageEnum.CALL_INITIATED.getValue())) {
-			videoCallEvent.initiateCall(message);
-		}else if (String.valueOf(payload.get("contentType")).equals(MessageEnum.CALL_ACCEPTED.getValue())) {
-			videoCallEvent.callAccepted(message);
-		}else if (String.valueOf(payload.get("contentType")).equals(MessageEnum.CALL_REJECTED.getValue())) {
-			videoCallEvent.callRejected(message);
-		}else if (String.valueOf(payload.get("contentType")).equals(MessageEnum.CALL_DISCONNECTED.getValue())) {
-			videoCallEvent.callDisconnected(message);
-		}else if (String.valueOf(payload.get("contentType")).equals(MessageEnum.RETURNING_SIGNAL.getValue())) {
-			videoCallEvent.returnSignal(message);
-		}else if (String.valueOf(payload.get("contentType")).equals(MessageEnum.SENDING_SIGNAL.getValue())) {
-			videoCallEvent.sendSignal(message);
-		}else if (String.valueOf(payload.get("contentType")).equals(MessageEnum.TOGGLE_AUDIO.getValue())) {
-			videoCallEvent.toggleAudio(message);
-		}else {
-			log.error("ContentType don't matched.");
+		MessageEnum contentType = MessageEnum.valueOf(String.valueOf(message.getPayload().get("contentType")));
+		switch (contentType) {
+		case CALL_INITIATED : videoCallEvent.initiateCall(message);
+			break;
+		case CALL_ACCEPTED : videoCallEvent.callAccepted(message);
+			break;
+		case CALL_REJECTED : videoCallEvent.callRejected(message);
+			break;
+		case CALL_DISCONNECTED : videoCallEvent.callDisconnected(message);
+			break;
+		case RETURNING_SIGNAL : videoCallEvent.returnSignal(message);
+			break;
+		case SENDING_SIGNAL : videoCallEvent.sendSignal(message);
+			break;
+		case TOGGLE_AUDIO : videoCallEvent.toggleAudio(message);
+			break;
+		case ADD_USER_IN_CALL : videoCallEvent.addUserInCall(message);
+			break;
+		default: log.error("ContentType don't mached.");
+			break;
 		}
 	}
 }
