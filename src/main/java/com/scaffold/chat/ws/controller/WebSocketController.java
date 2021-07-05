@@ -58,6 +58,8 @@ public class WebSocketController {
 			break;
 		case ADD_USER_IN_CALL : videoCallEvent.addUserInCall(message);
 			break;
+		case SCREEN_SHARING : videoCallEvent.screenSharing(message);
+		break;
 		default: log.error("ContentType don't mached.");
 			break;
 		}

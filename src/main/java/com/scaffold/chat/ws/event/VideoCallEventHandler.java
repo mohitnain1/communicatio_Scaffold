@@ -206,6 +206,22 @@ public class VideoCallEventHandler {
 		simpMessagingTemplate.convertAndSend(destinationToNotify, response);
 	}
 	
+	public void screenSharing(Message<Map<String, Object>> message) {
+		Map<String, Object> payload = message.getPayload();
+		Map<String, Object> response = new HashMap<String, Object>();
+		UserDataTransfer user = getUserBasicDetails(Long.parseLong(String.valueOf(payload.get("senderId"))));
+		String chatRoomId = getHeaderAccessor(message).getDestination().replace("/app/call.", "");
+		response.put("sender", user);
+		response.put("isShared", payload.get("isShared"));
+		response.put("contentType", payload.get("contentType"));
+		List<UserDataTransfer> inCallMembers = inCallMember.getInCallMembers(chatRoomId);
+		List<UserDataTransfer> userList = inCallMembers.stream().filter(filteredUsers -> !filteredUsers.equals(user)).collect(Collectors.toList());
+		userList.forEach(userData ->{
+			String destinationToNotify = String.format(Destinations.MESSAGE_EVENT_NOTIFICATION.getPath(), userData.getUserId());
+			simpMessagingTemplate.convertAndSend(destinationToNotify, response);
+		});
+	}
+	
 	private boolean setIsCallActiveStatus(String chatRoomId, boolean isCallActive) {
 		ChatRoom chatRoom = chatRoomRepository.findByChatRoomIdAndIsDeleted(chatRoomId, false).get();
 		chatRoom.setCallActive(isCallActive);
