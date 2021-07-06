@@ -214,12 +214,8 @@ public class VideoCallEventHandler {
 		response.put("sender", user);
 		response.put("isShared", payload.get("isShared"));
 		response.put("contentType", payload.get("contentType"));
-		List<UserDataTransfer> inCallMembers = inCallMember.getInCallMembers(chatRoomId);
-		List<UserDataTransfer> userList = inCallMembers.stream().filter(filteredUsers -> !filteredUsers.equals(user)).collect(Collectors.toList());
-		userList.forEach(userData ->{
-			String destinationToNotify = String.format(Destinations.MESSAGE_EVENT_NOTIFICATION.getPath(), userData.getUserId());
-			simpMessagingTemplate.convertAndSend(destinationToNotify, response);
-		});
+		String destination = String.format(Destinations.VIDEO_CALL.getPath(),chatRoomId);
+		simpMessagingTemplate.convertAndSend(destination, response);
 	}
 	
 	private boolean setIsCallActiveStatus(String chatRoomId, boolean isCallActive) {
